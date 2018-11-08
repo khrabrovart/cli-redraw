@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net46;netstandard1.6;netstandard2.0</TargetFrameworks>
+
+    <PackageId>CLIRedraw</PackageId>
+    <Title>CLI Redraw</Title>
+    <Summary>Advanced console controls for .NET</Summary>
+    <Authors>Arthur Khrabrov</Authors>
+    <Owners>Arthur Khrabrov</Owners>
+    <PackageProjectUrl>https://github.com/khrabrovart/cli-redraw</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/khrabrovart/cli-redraw</RepositoryUrl>
+    <Description>Advanced console controls for .NET</Description>
+    <Copyright>Copyright 2018 (C) Arthur Khrabrov. All rights reserved.</Copyright>
+    <PackageTags>console redraw controls cli</PackageTags>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSource>True</IncludeSource>
+    <IncludeSymbols>True</IncludeSymbols>
+
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <PackageVersion>2.0.0-beta1</PackageVersion>
+    <Version>2.0.0-beta1</Version>
+  </PropertyGroup>
+
+</Project>
