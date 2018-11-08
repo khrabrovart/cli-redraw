@@ -15,6 +15,14 @@ namespace CLIRedraw
 
         private int _currentBufferWidth;
 
+        public Menu() : this(null, null)
+        {
+        }
+
+        public Menu(string title) : this(title, null)
+        {
+        }
+
         public Menu(IEnumerable<MenuItem> menuItems) 
             : this(null, menuItems)
         {
@@ -22,13 +30,15 @@ namespace CLIRedraw
 
         public Menu(string title, IEnumerable<MenuItem> menuItems)
         {
-            _items = menuItems.ToList();
+            _items = menuItems?.ToList() ?? new List<MenuItem>();
             _lastIndex = _items.Count - 1;
-
-            _title = title;
-            _titleLinesCount = GetLinesCount(title);
-
             _currentBufferWidth = Console.BufferWidth;
+
+            if (title != null)
+            {
+                _title = title;
+                _titleLinesCount = GetLinesCount(title);
+            }
         }
 
         public MenuItem Current => _items[_currentIndex];
@@ -79,6 +89,8 @@ namespace CLIRedraw
             }
         }
 
+        // TODO: Create new Add methods with MenuItem properties so that user does not
+        // need to create MenuItem instance by hand every time
         public void Add(MenuItem menuItem)
         {
             _items.Add(menuItem);
@@ -87,6 +99,12 @@ namespace CLIRedraw
             DrawItem(_lastIndex);
         }
 
+        public void Add(string title, Action<MenuItem> action)
+        {
+            Add(new MenuItem(title, action));
+        }
+
+        // TODO: Exception if all items are removed?
         public void Remove(MenuItem menuItem)
         {
             if (Current == menuItem && _currentIndex == _lastIndex)
@@ -149,6 +167,8 @@ namespace CLIRedraw
             DrawItem(_currentIndex);
         }
 
+        // TODO: Переходить в состояние выполнения действия (isInvoking = true) для того, чтобы при добавлении или удалении
+        // пункта меню в ходе выполнения действия не производилась перерисовка
         private void InvokeAction(ConsoleKey key)
         {
             if (Current.TryGetAction(key, out var action))

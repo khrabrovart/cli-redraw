@@ -41,13 +41,13 @@ namespace SimpleMenu
             removeMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, mi => menu.Remove(removeMeMenuItem));
             menu.Add(removeMeMenuItem);
 
-
             int i = 0;
             var addMeMenuItem = new MenuItem("Добавь еще!", "Добавляет новый пункт")
             {
                 ShowCursor = false,
                 ClearBeforeAction = false
             };
+
             addMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, mi => AddItem(menu, i++));
             menu.Add(addMeMenuItem);
 
@@ -70,7 +70,6 @@ namespace SimpleMenu
         {
             var menuItem = new MenuItem($"Новый пункт {index}", "Enter - действие, Delete - удалить", mi => SomeAction1());
             menuItem.AddOrUpdateAction(ConsoleKey.Delete, mi => menu.Remove(menuItem));
-
 
             menu.Add(menuItem);
         }

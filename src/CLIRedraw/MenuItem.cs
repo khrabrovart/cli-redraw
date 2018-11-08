@@ -12,6 +12,8 @@ namespace CLIRedraw
         {
         }
 
+        // TODO: Add constructor with dictionary of actions to immediately create
+        // set of actions for menu item
         public MenuItem(string title, Action<MenuItem> action)
             : this(title, null, action)
         {
@@ -39,6 +41,8 @@ namespace CLIRedraw
 
         public string Description { get; }
 
+        // TODO: This should be added to Action, not to MenuItem 
+        // because every Action may has its own logic
         public bool ClearBeforeAction { get; set; } = true;
 
         public bool ShowCursor { get; set; } = true;
