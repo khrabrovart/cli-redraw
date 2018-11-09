@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CLIRedraw
 {
@@ -8,19 +9,17 @@ namespace CLIRedraw
         private IDictionary<ConsoleKey, Action<MenuItem>> _actions;
 
         public MenuItem(string title)
-            : this(title, null, null)
-        {
-        }
-
-        // TODO: Add constructor with dictionary of actions to immediately create
-        // set of actions for menu item
-        public MenuItem(string title, Action<MenuItem> action)
-            : this(title, null, action)
+            : this(title, null, action: null)
         {
         }
 
         public MenuItem(string title, string description)
-            : this(title, description, null)
+            : this(title, description, action: null)
+        {
+        }
+
+        public MenuItem(string title, Action<MenuItem> action)
+            : this(title, null, action)
         {
         }
 
@@ -35,6 +34,22 @@ namespace CLIRedraw
             {
                 _actions.Add(ConsoleKey.Enter, action);
             }
+        }
+
+        public MenuItem(string title, IDictionary<ConsoleKey, Action<MenuItem>> actions)
+            : this(title, null, actions)
+        {
+        }
+
+        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action<MenuItem>> actions)
+        {
+            Title = title;
+            Description = description;
+
+            _actions = actions?
+                .Where(a => a.Value != null)
+                .ToDictionary(a => a.Key, a => a.Value) 
+                ?? new Dictionary<ConsoleKey, Action<MenuItem>>();
         }
 
         public string Title { get; }

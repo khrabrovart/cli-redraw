@@ -7,14 +7,13 @@ namespace CLIRedraw
     public class Menu
     {
         private int _currentIndex;
-        private int _lastIndex;
         private List<MenuItem> _items;
-
-        private string _title;
+        private bool _isInvoking;
         private int _titleLinesCount;
-
         private int _currentBufferWidth;
+        private bool _needRedraw;
 
+        // What about event based version?
         public Menu() : this(null, null)
         {
         }
@@ -31,15 +30,16 @@ namespace CLIRedraw
         public Menu(string title, IEnumerable<MenuItem> menuItems)
         {
             _items = menuItems?.ToList() ?? new List<MenuItem>();
-            _lastIndex = _items.Count - 1;
             _currentBufferWidth = Console.BufferWidth;
 
             if (title != null)
             {
-                _title = title;
+                Title = title;
                 _titleLinesCount = GetLinesCount(title);
             }
         }
+
+        public string Title { get; set; }
 
         public MenuItem Current => _items[_currentIndex];
 
@@ -56,6 +56,8 @@ namespace CLIRedraw
         public ConsoleColor SelectionForegroundColor { get; set; } = ConsoleColor.Green;
 
         public ConsoleColor TitleColor { get; set; } = ConsoleColor.Green;
+
+        private int LastIndex => _items.Count - 1;
         
         public void Show()
         {
@@ -89,14 +91,28 @@ namespace CLIRedraw
             }
         }
 
-        // TODO: Create new Add methods with MenuItem properties so that user does not
-        // need to create MenuItem instance by hand every time
         public void Add(MenuItem menuItem)
         {
             _items.Add(menuItem);
-            _lastIndex++;
 
-            DrawItem(_lastIndex);
+            if (!_isInvoking)
+            {
+                DrawItem(LastIndex);
+            }
+            else
+            {
+                _needRedraw = true;
+            }
+        }
+
+        public void Add(string title)
+        {
+            Add(new MenuItem(title));
+        }
+
+        public void Add(string title, string description)
+        {
+            Add(new MenuItem(title, description));
         }
 
         public void Add(string title, Action<MenuItem> action)
@@ -104,31 +120,58 @@ namespace CLIRedraw
             Add(new MenuItem(title, action));
         }
 
+        public void Add(string title, string description, Action<MenuItem> action)
+        {
+            Add(new MenuItem(title, description, action));
+        }
+
+        public void Add(string title, IDictionary<ConsoleKey, Action<MenuItem>> actions)
+        {
+            Add(new MenuItem(title, actions));
+        }
+
+        public void Add(string title, string description, IDictionary<ConsoleKey, Action<MenuItem>> actions)
+        {
+            Add(new MenuItem(title, description, actions));
+        }
+
         // TODO: Exception if all items are removed?
         public void Remove(MenuItem menuItem)
         {
-            if (Current == menuItem && _currentIndex == _lastIndex)
+            if (Current == menuItem && _currentIndex == LastIndex)
             {
-                _currentIndex = _currentIndex - 1;
+                _currentIndex--;
             }
 
             _items.Remove(menuItem);
-            _lastIndex--;
 
-            Redraw();
+            if (!_isInvoking)
+            {
+                Redraw();
+            }
+            else
+            {
+                _needRedraw = true;
+            }
         }
 
         public void Remove(int index)
         {
-            if (_currentIndex == index && _currentIndex == _lastIndex)
+            if (_currentIndex == index && _currentIndex == LastIndex)
             {
-                _currentIndex = _currentIndex - 1;
+                _currentIndex--;
             }
 
             _items.RemoveAt(index);
-            _lastIndex--;
 
-            Redraw();
+            if (!_isInvoking)
+            {
+                Redraw();
+            }
+            else
+            {
+                _needRedraw = true;
+            }
         }
 
         private void Up()
@@ -144,14 +187,14 @@ namespace CLIRedraw
             }
 
             var previousIndex = _currentIndex;
-            _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : _lastIndex;
+            _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : LastIndex;
             DrawItem(previousIndex);
             DrawItem(_currentIndex);
         }
 
         private void Down()
         {
-            if (_currentIndex == _lastIndex && !Looped)
+            if (_currentIndex == LastIndex && !Looped)
             {
                 return;
             }
@@ -162,13 +205,11 @@ namespace CLIRedraw
             }
 
             var previousIndex = _currentIndex;
-            _currentIndex = _currentIndex < _lastIndex ? _currentIndex + 1 : 0;
+            _currentIndex = _currentIndex < LastIndex ? _currentIndex + 1 : 0;
             DrawItem(previousIndex);
             DrawItem(_currentIndex);
         }
 
-        // TODO: Переходить в состояние выполнения действия (isInvoking = true) для того, чтобы при добавлении или удалении
-        // пункта меню в ходе выполнения действия не производилась перерисовка
         private void InvokeAction(ConsoleKey key)
         {
             if (Current.TryGetAction(key, out var action))
@@ -183,9 +224,13 @@ namespace CLIRedraw
                     Console.CursorVisible = true;
                 }
 
+                _isInvoking = true;
+
                 action.Invoke(Current);
 
-                if (Current.ClearBeforeAction && !Current.IsTerminator)
+                _isInvoking = false;
+
+                if ((Current.ClearBeforeAction || _needRedraw) && !Current.IsTerminator)
                 {
                     Redraw();
                 }
@@ -196,9 +241,9 @@ namespace CLIRedraw
         {
             Console.Clear();
 
-            if (!string.IsNullOrWhiteSpace(_title))
+            if (!string.IsNullOrWhiteSpace(Title))
             {
-                ColorConsole.WriteLine(_title, fg: TitleColor);
+                ColorConsole.WriteLine(Title, foregroundColor: TitleColor);
             }
 
             for (int i = 0; i < _items.Count; i++)
@@ -241,7 +286,7 @@ namespace CLIRedraw
             if (changed)
             {
                 _currentBufferWidth = Console.BufferWidth;
-                _titleLinesCount = GetLinesCount(_title);
+                _titleLinesCount = GetLinesCount(Title);
             }
 
             return changed;

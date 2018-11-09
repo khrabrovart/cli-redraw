@@ -13,14 +13,14 @@ namespace SimpleMenu
 
             var items = new List<MenuItem>
             {
-                new MenuItem("Первый пункт"),
-                new MenuItem("Второй пункт"),
-                new MenuItem("Сумма чисел", mi => Sum()),
-                new MenuItem("Четвертый пункт", "Совершает действие", mi => SomeAction1())
+                new MenuItem("First item"),
+                new MenuItem("Second item"),
+                new MenuItem("Sum", mi => Sum()),
+                new MenuItem("Forth", "With action", mi => SomeAction1())
                 {
                     ShowCursor = false
                 },
-                new MenuItem("Пятый пункт", "С выходом после действия", mi => 
+                new MenuItem("Fifth", "With exit after action", mi => 
                 {
                     SomeAction2();
                     ConfirmExit(mi);
@@ -29,20 +29,20 @@ namespace SimpleMenu
                     ShowCursor = false,
                     IsTerminator = true
                 },
-                new MenuItem("Выход", mi => ConfirmExit(mi))
+                new MenuItem("Exit", mi => ConfirmExit(mi))
             };
 
-            var menu = new Menu("Добро пожаловать в меню!\nТестовый заголовок меню\nСостоит из нескольких строк", items)
+            var menu = new Menu("Welcom to Simple Menu!\nSome menu title\nConsists of several text lines", items)
             {
                 DefaultForegroundColor = ConsoleColor.DarkYellow
             };
 
-            var removeMeMenuItem = new MenuItem("Удали меня!", "Удаляет сам себя");
+            var removeMeMenuItem = new MenuItem("Delete me!", "Removes itself");
             removeMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, mi => menu.Remove(removeMeMenuItem));
             menu.Add(removeMeMenuItem);
 
             int i = 0;
-            var addMeMenuItem = new MenuItem("Добавь еще!", "Добавляет новый пункт")
+            var addMeMenuItem = new MenuItem("Add more!", "Adds new menu item")
             {
                 ShowCursor = false,
                 ClearBeforeAction = false
@@ -54,21 +54,27 @@ namespace SimpleMenu
             menu.Show();
         }
 
-        public static void SomeAction1()
+        public static void SomeAction1(int? index = null)
         {
-            Console.WriteLine("Какое-то действие");
+            Console.WriteLine("Some action");
+
+            if (index.HasValue)
+            {
+                Console.WriteLine($"Index is {index}");
+            }
+
             Console.ReadKey();
         }
 
         public static void SomeAction2()
         {
-            Console.WriteLine("После нажатия любой клавиши произойдет выход из программы");
+            Console.WriteLine("Application will exit after any key is pressed");
             Console.ReadKey();
         }
 
         public static void AddItem(Menu menu, int index)
         {
-            var menuItem = new MenuItem($"Новый пункт {index}", "Enter - действие, Delete - удалить", mi => SomeAction1());
+            var menuItem = new MenuItem($"New menu item {index}", "Enter or Delete", mi => SomeAction1(index));
             menuItem.AddOrUpdateAction(ConsoleKey.Delete, mi => menu.Remove(menuItem));
 
             menu.Add(menuItem);
@@ -76,14 +82,14 @@ namespace SimpleMenu
 
         public static void Sum()
         {
-            if (int.TryParse(InputPrompt("Введите первое число"), out var a) &&
-                int.TryParse(InputPrompt("Введите второе число"), out var b))
+            if (int.TryParse(InputPrompt("Enter first number"), out var a) &&
+                int.TryParse(InputPrompt("Enter second number"), out var b))
             {
-                Console.WriteLine($"Сумма равна: {a + b}");
+                Console.WriteLine($"Sum is {a + b}");
             }
             else
             {
-                ColorConsole.WriteLine("Введено некорректное значение!", fg: ConsoleColor.Red);
+                ColorConsole.WriteLine("Invalid value!", foregroundColor: ConsoleColor.Red);
             }
 
             Console.ReadKey();
@@ -91,12 +97,12 @@ namespace SimpleMenu
 
         public static void ConfirmExit(MenuItem item)
         {
-            var yes = new MenuItem("Да", mi =>
+            var yes = new MenuItem("Yes", mi =>
                 {
                     item.IsTerminator = true;
                 });
 
-            var no = new MenuItem("Нет", mi =>
+            var no = new MenuItem("No", mi =>
                 {
                     item.IsTerminator = false;
                 });
@@ -104,7 +110,7 @@ namespace SimpleMenu
             yes.IsTerminator = true;
             no.IsTerminator = true;
 
-            new Menu("Вы точно хотите выйти?", new[] { yes, no }).Show();
+            new Menu("Are you sure you wanna quit?", new[] { yes, no }).Show();
         }
 
         private static string InputPrompt(string promptText)
