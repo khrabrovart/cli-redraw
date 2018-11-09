@@ -13,7 +13,6 @@ namespace CLIRedraw
         private int _currentBufferWidth;
         private bool _needRedraw;
 
-        // What about event based version?
         public Menu() : this(null, null)
         {
         }
@@ -43,7 +42,7 @@ namespace CLIRedraw
 
         public MenuItem Current => _items[_currentIndex];
 
-        public IEnumerable<MenuItem> Items => _items.ToList();
+        public IEnumerable<MenuItem> Items => _items;
 
         public bool Looped { get; set; }
 
@@ -58,10 +57,12 @@ namespace CLIRedraw
         public ConsoleColor TitleColor { get; set; } = ConsoleColor.Green;
 
         private int LastIndex => _items.Count - 1;
+
+        private bool IsEmpty => _items.Count == 0;
         
         public void Show()
         {
-            if (!_items.Any())
+            if (IsEmpty)
             {
                 return;
             }
@@ -85,7 +86,7 @@ namespace CLIRedraw
 
                     default:
                         InvokeAction(keyInfo.Key);
-                        exit = Current.IsTerminator;
+                        exit = _currentIndex < 0 || Current.IsTerminator;
                         break;
                 }
             }
@@ -135,7 +136,6 @@ namespace CLIRedraw
             Add(new MenuItem(title, description, actions));
         }
 
-        // TODO: Exception if all items are removed?
         public void Remove(MenuItem menuItem)
         {
             if (Current == menuItem && _currentIndex == LastIndex)
@@ -144,6 +144,11 @@ namespace CLIRedraw
             }
 
             _items.Remove(menuItem);
+
+            if (IsEmpty)
+            {
+                return;
+            }
 
             if (!_isInvoking)
             {
@@ -163,6 +168,11 @@ namespace CLIRedraw
             }
 
             _items.RemoveAt(index);
+
+            if (IsEmpty)
+            {
+                return;
+            }
 
             if (!_isInvoking)
             {
@@ -229,6 +239,11 @@ namespace CLIRedraw
                 action.Invoke(Current);
 
                 _isInvoking = false;
+
+                if (IsEmpty)
+                {
+                    return;
+                }
 
                 if ((Current.ClearBeforeAction || _needRedraw) && !Current.IsTerminator)
                 {

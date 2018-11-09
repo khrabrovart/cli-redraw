@@ -1,5 +1,6 @@
 ﻿using CLIRedraw;
 using System;
+using System.Collections.Generic;
 
 namespace EmptyMenu
 {
@@ -9,15 +10,20 @@ namespace EmptyMenu
         {
             var menu = new Menu();
 
-            menu.Add(new MenuItem("Add menu item", mi =>
+            var addMenuItem = new MenuItem("Add menu item", mi =>
             {
-                menu.Add("New menu item", min =>
+                menu.Add("New menu item", new Dictionary<ConsoleKey, Action<MenuItem>>
                 {
-                    Console.WriteLine("From new menu item");
-                    Console.ReadKey();
+                    [ConsoleKey.Delete] = min =>
+                    {
+                        menu.Remove(min);
+                    }
                 });
-            }));
+            });
 
+            addMenuItem.AddOrUpdateAction(ConsoleKey.Delete, mi => menu.Remove(mi));
+
+            menu.Add(addMenuItem);
             menu.Show();
 
             Console.ReadKey();
