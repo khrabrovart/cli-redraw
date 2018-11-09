@@ -25,8 +25,6 @@ namespace EmptyMenu
 
             menu.Add(addMenuItem);
             menu.Show();
-
-            Console.ReadKey();
         }
     }
 }
