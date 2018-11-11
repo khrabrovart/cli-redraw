@@ -1,28 +1,34 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net46;netstandard1.6;netstandard2.0</TargetFrameworks>
-
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyName>CLIRedraw</AssemblyName>
     <PackageId>CLIRedraw</PackageId>
-    <Title>CLI Redraw</Title>
-    <Summary>Advanced console controls for .NET</Summary>
+    <Title>CLIRedraw</Title>
+    <Description>Advanced console controls for .NET</Description>
     <Authors>Arthur Khrabrov</Authors>
     <Owners>Arthur Khrabrov</Owners>
     <PackageProjectUrl>https://github.com/khrabrovart/cli-redraw</PackageProjectUrl>
     <RepositoryUrl>https://github.com/khrabrovart/cli-redraw</RepositoryUrl>
-    <Description>Advanced console controls for .NET</Description>
+    <PackageLicenseUrl>https://github.com/khrabrovart/cli-redraw/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/khrabrovart/cli-redraw/master/src/nuget-icon.png</PackageIconUrl>
     <Copyright>Copyright 2018 (C) Arthur Khrabrov. All rights reserved.</Copyright>
     <PackageTags>console redraw controls cli</PackageTags>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <RepositoryType>git</RepositoryType>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <IncludeSource>True</IncludeSource>
-    <IncludeSymbols>True</IncludeSymbols>
 
-    <AssemblyVersion>2.0.0</AssemblyVersion>
-    <FileVersion>2.0.0</FileVersion>
-    <PackageVersion>2.0.0-beta1</PackageVersion>
-    <Version>2.0.0-beta1</Version>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    
+    <!-- Consider only including a major version in the AssemblyVersion. -->
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <PackageVersion>2.0.0-beta2</PackageVersion>
+
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
+  </ItemGroup>
 
 </Project>
