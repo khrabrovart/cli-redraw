@@ -6,29 +6,49 @@ namespace CLIRedraw
 {
     public class MenuItem
     {
-        private IDictionary<ConsoleKey, Action<MenuItem>> _actions;
+        private IDictionary<ConsoleKey, MenuItemAction> _actions;
 
-        public MenuItem(string title)
-            : this(title, null, action: null)
+        public MenuItem(string title) : this(title, description: null)
         {
         }
 
         public MenuItem(string title, string description)
-            : this(title, description, action: null)
+        {
+            Title = title;
+            Description = description;
+        }
+
+        public MenuItem(string title, Action action)
+            : this(title, new MenuItemAction(action))
         {
         }
 
         public MenuItem(string title, Action<MenuItem> action)
+            : this(title, new MenuItemAction(action))
+        {
+        }
+
+        public MenuItem(string title, MenuItemAction action)
             : this(title, null, action)
         {
         }
 
+        public MenuItem(string title, string description, Action action)
+            : this(title, description, new MenuItemAction(action))
+        {
+        }
+
         public MenuItem(string title, string description, Action<MenuItem> action)
+            : this(title, description, new MenuItemAction(action))
+        {
+        }
+
+        public MenuItem(string title, string description, MenuItemAction action)
         {
             Title = title;
             Description = description;
 
-            _actions = new Dictionary<ConsoleKey, Action<MenuItem>>();
+            _actions = new Dictionary<ConsoleKey, MenuItemAction>();
 
             if (action != null)
             {
@@ -36,9 +56,30 @@ namespace CLIRedraw
             }
         }
 
+        public MenuItem(string title, IDictionary<ConsoleKey, Action> actions)
+            : this(title, null, actions)
+        { 
+        }
+
         public MenuItem(string title, IDictionary<ConsoleKey, Action<MenuItem>> actions)
             : this(title, null, actions)
         {
+        }
+
+        public MenuItem(string title, IDictionary<ConsoleKey, MenuItemAction> actions)
+            : this(title, null, actions)
+        {
+        }
+
+        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action> actions)
+        {
+            Title = title;
+            Description = description;
+
+            _actions = actions?
+                .Where(a => a.Value != null)
+                .ToDictionary(a => a.Key, a => new MenuItemAction(a.Value))
+                ?? new Dictionary<ConsoleKey, MenuItemAction>();
         }
 
         public MenuItem(string title, string description, IDictionary<ConsoleKey, Action<MenuItem>> actions)
@@ -48,23 +89,26 @@ namespace CLIRedraw
 
             _actions = actions?
                 .Where(a => a.Value != null)
+                .ToDictionary(a => a.Key, a => new MenuItemAction(a.Value))
+                ?? new Dictionary<ConsoleKey, MenuItemAction>();
+        }
+
+        public MenuItem(string title, string description, IDictionary<ConsoleKey, MenuItemAction> actions)
+        {
+            Title = title;
+            Description = description;
+
+            _actions = actions?
+                .Where(a => a.Value != null)
                 .ToDictionary(a => a.Key, a => a.Value) 
-                ?? new Dictionary<ConsoleKey, Action<MenuItem>>();
+                ?? new Dictionary<ConsoleKey, MenuItemAction>();
         }
 
         public string Title { get; }
 
         public string Description { get; }
 
-        // TODO: This should be added to Action, not to MenuItem 
-        // because every Action may has its own logic
-        public bool ClearBeforeAction { get; set; } = true;
-
-        public bool ShowCursor { get; set; } = true;
-
-        public bool IsTerminator { get; set; }
-
-        public void AddOrUpdateAction(ConsoleKey key, Action<MenuItem> action)
+        public void AddOrUpdateAction(ConsoleKey key, MenuItemAction action)
         {
             if (action == null)
             {
@@ -81,7 +125,7 @@ namespace CLIRedraw
             }
         }
 
-        public bool TryGetAction(ConsoleKey key, out Action<MenuItem> action)
+        public bool TryGetAction(ConsoleKey key, out MenuItemAction action)
         {
             if (_actions.TryGetValue(key, out var result))
             {

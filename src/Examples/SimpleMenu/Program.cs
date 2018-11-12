@@ -15,7 +15,7 @@ namespace SimpleMenu
             {
                 new MenuItem("First item"),
                 new MenuItem("Second item"),
-                new MenuItem("Sum", mi => Sum()),
+                new MenuItem("Sum", new MenuItemAction(Sum)),
                 new MenuItem("Forth", "With action", mi => SomeAction1())
                 {
                     ShowCursor = false
@@ -34,7 +34,7 @@ namespace SimpleMenu
 
             var menu = new Menu("Welcom to Simple Menu!\nSome menu title\nConsists of several text lines", items)
             {
-                DefaultForegroundColor = ConsoleColor.DarkYellow
+                ForegroundColor = ConsoleColor.DarkYellow
             };
 
             var removeMeMenuItem = new MenuItem("Delete me!", "Removes itself");

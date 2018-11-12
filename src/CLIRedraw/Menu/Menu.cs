@@ -13,19 +13,35 @@ namespace CLIRedraw
         private int _currentBufferWidth;
         private bool _needRedraw;
 
+        /// <summary>
+        /// Represents menu control.
+        /// </summary>
         public Menu() : this(null, null)
         {
         }
 
+        /// <summary>
+        /// Represents menu control with title.
+        /// </summary>
+        /// <param name="title">Menu title.</param>
         public Menu(string title) : this(title, null)
         {
         }
 
+        /// <summary>
+        /// Represents menu control with menu items.
+        /// </summary>
+        /// <param name="menuItems">Menu items collection.</param>
         public Menu(IEnumerable<MenuItem> menuItems) 
             : this(null, menuItems)
         {
         }
 
+        /// <summary>
+        /// Represents menu control with titile and menu items.
+        /// </summary>
+        /// <param name="title">Menu title.</param>
+        /// <param name="menuItems">Menu items collection.</param>
         public Menu(string title, IEnumerable<MenuItem> menuItems)
         {
             _items = menuItems?.ToList() ?? new List<MenuItem>();
@@ -38,28 +54,58 @@ namespace CLIRedraw
             }
         }
 
-        public string Title { get; set; }
-
+        /// <summary>
+        /// Gets currently selected menu item.
+        /// </summary>
         public MenuItem Current => _items[_currentIndex];
 
+        /// <summary>
+        /// Gets the menu items.
+        /// </summary>
         public IEnumerable<MenuItem> Items => _items;
 
+        /// <summary>
+        /// Gets or sets the menu title.
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
+        /// Gets or sets the menu looped state.
+        /// </summary>
         public bool Looped { get; set; }
 
-        public ConsoleColor DefaultBackgroundColor { get; set; } = ConsoleColor.Black;
+        /// <summary>
+        /// Gets or sets background color for not selected menu items.
+        /// </summary>
+        public ConsoleColor BackgroundColor { get; set; } = ConsoleColor.Black;
 
-        public ConsoleColor DefaultForegroundColor { get; set; } = ConsoleColor.White;
+        /// <summary>
+        /// Gets or sets foreground color for not selected menu items.
+        /// </summary>
+        public ConsoleColor ForegroundColor { get; set; } = ConsoleColor.White;
 
-        public ConsoleColor SelectionBackgroundColor { get; set; } = ConsoleColor.DarkGray;
+        /// <summary>
+        /// Gets or sets background color for selected menu items.
+        /// </summary>
+        public ConsoleColor SelectedBackgroundColor { get; set; } = ConsoleColor.DarkGray;
 
-        public ConsoleColor SelectionForegroundColor { get; set; } = ConsoleColor.Green;
+        /// <summary>
+        /// Gets or sets foreground color for selected menu items.
+        /// </summary>
+        public ConsoleColor SelectedForegroundColor { get; set; } = ConsoleColor.Green;
 
+        /// <summary>
+        /// Gets or sets the menu title color.
+        /// </summary>
         public ConsoleColor TitleColor { get; set; } = ConsoleColor.Green;
 
         private int LastIndex => _items.Count - 1;
 
         private bool IsEmpty => _items.Count == 0;
         
+        /// <summary>
+        /// Shows the menu. Does nothing if the menu has no items.
+        /// </summary>
         public void Show()
         {
             if (IsEmpty)
@@ -85,13 +131,21 @@ namespace CLIRedraw
                         break;
 
                     default:
-                        InvokeAction(keyInfo.Key);
-                        exit = _currentIndex < 0 || Current.IsTerminator;
+                        var action = GetAction(keyInfo.Key);
+
+                        if (action != null)
+                        {
+                            InvokeAction(action);
+                            exit = _currentIndex < 0 || action.IsTerminator;
+                        }
+
                         break;
                 }
             }
         }
 
+        // TODO: Add summary to all public methods.
+        // TODO: Add methods with empty Action<> so that MenuItem parameter is not needed.
         public void Add(MenuItem menuItem)
         {
             _items.Add(menuItem);
@@ -116,24 +170,14 @@ namespace CLIRedraw
             Add(new MenuItem(title, description));
         }
 
-        public void Add(string title, Action<MenuItem> action)
+        public void Add(string title, Action action)
         {
-            Add(new MenuItem(title, action));
+            Add(new MenuItem(title, new MenuItemAction(action)));
         }
 
-        public void Add(string title, string description, Action<MenuItem> action)
+        public void Add(string title, string description, Action action)
         {
-            Add(new MenuItem(title, description, action));
-        }
-
-        public void Add(string title, IDictionary<ConsoleKey, Action<MenuItem>> actions)
-        {
-            Add(new MenuItem(title, actions));
-        }
-
-        public void Add(string title, string description, IDictionary<ConsoleKey, Action<MenuItem>> actions)
-        {
-            Add(new MenuItem(title, description, actions));
+            Add(new MenuItem(title, description, new MenuItemAction(action)));
         }
 
         public void Remove(MenuItem menuItem)
@@ -220,35 +264,42 @@ namespace CLIRedraw
             DrawItem(_currentIndex);
         }
 
-        private void InvokeAction(ConsoleKey key)
+        private MenuItemAction GetAction(ConsoleKey key)
         {
-            if (Current.TryGetAction(key, out var action))
+            return Current.TryGetAction(key, out var action) ? action : null;
+        }
+
+        private void InvokeAction(MenuItemAction action)
+        {
+            if (action == null)
             {
-                if (Current.ClearBeforeAction)
-                {
-                    Console.Clear();
-                }
+                return;
+            }
 
-                if (Current.ShowCursor)
-                {
-                    Console.CursorVisible = true;
-                }
+            if (action.ClearBeforeAction)
+            {
+                Console.Clear();
+            }
 
-                _isInvoking = true;
+            if (action.ShowCursor)
+            {
+                Console.CursorVisible = true;
+            }
 
-                action.Invoke(Current);
+            _isInvoking = true;
 
-                _isInvoking = false;
+            action.Action.Invoke(Current);
 
-                if (IsEmpty)
-                {
-                    return;
-                }
+            _isInvoking = false;
 
-                if ((Current.ClearBeforeAction || _needRedraw) && !Current.IsTerminator)
-                {
-                    Redraw();
-                }
+            if (IsEmpty)
+            {
+                return;
+            }
+
+            if ((action.ClearBeforeAction || _needRedraw) && !action.IsTerminator)
+            {
+                Redraw();
             }
         }
 
@@ -281,8 +332,8 @@ namespace CLIRedraw
             Console.CursorVisible = false;
 
             ColorConsole.Write(menuItem.Title,
-                isCurrent ? SelectionBackgroundColor : DefaultBackgroundColor,
-                isCurrent ? SelectionForegroundColor : DefaultForegroundColor);
+                isCurrent ? SelectedBackgroundColor : BackgroundColor,
+                isCurrent ? SelectedForegroundColor : ForegroundColor);
 
             if (!string.IsNullOrWhiteSpace(menuItem.Description))
             {
