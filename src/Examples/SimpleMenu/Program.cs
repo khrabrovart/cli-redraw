@@ -16,19 +16,20 @@ namespace SimpleMenu
                 new MenuItem("First item"),
                 new MenuItem("Second item"),
                 new MenuItem("Sum", new MenuItemAction(Sum)),
-                new MenuItem("Forth", "With action", mi => SomeAction1())
+                new MenuItem("Forth", "With action", new MenuItemAction(() => SomeAction1())
                 {
-                    ShowCursor = false
-                },
-                new MenuItem("Fifth", "With exit after action", mi => 
+                    IsCursorVisible = false
+                }),
+                new MenuItem("Fifth", "With exit after action", new MenuItemAction(
+                    mi => 
+                    {
+                        SomeAction2();
+                        ConfirmExit(mi);
+                    })
                 {
-                    SomeAction2();
-                    ConfirmExit(mi);
-                })
-                {
-                    ShowCursor = false,
+                    IsCursorVisible = false,
                     IsTerminator = true
-                },
+                }),
                 new MenuItem("Exit", mi => ConfirmExit(mi))
             };
 
@@ -42,13 +43,14 @@ namespace SimpleMenu
             menu.Add(removeMeMenuItem);
 
             int i = 0;
-            var addMeMenuItem = new MenuItem("Add more!", "Adds new menu item")
-            {
-                ShowCursor = false,
-                ClearBeforeAction = false
-            };
+            var addMeMenuItem = new MenuItem("Add more!", "Adds new menu item");
 
-            addMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, mi => AddItem(menu, i++));
+            addMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, new MenuItemAction(() => AddItem(menu, i++))
+            {
+                IsCursorVisible = false,
+                ClearBeforeAction = false
+            });
+
             menu.Add(addMeMenuItem);
 
             menu.Show();
@@ -95,20 +97,11 @@ namespace SimpleMenu
             Console.ReadKey();
         }
 
-        public static void ConfirmExit(MenuItem item)
+        public static void ConfirmExit(MenuItemActionContext ctx)
         {
-            var yes = new MenuItem("Yes", mi =>
-                {
-                    item.IsTerminator = true;
-                });
+            var yes = new MenuItem("Yes", new MenuItemAction(() => ctx.Action.IsTerminator = true) { IsTerminator = true });
 
-            var no = new MenuItem("No", mi =>
-                {
-                    item.IsTerminator = false;
-                });
-
-            yes.IsTerminator = true;
-            no.IsTerminator = true;
+            var no = new MenuItem("No", new MenuItemAction(() => ctx.Action.IsTerminator = false) { IsTerminator = true });
 
             new Menu("Are you sure you wanna quit?", new[] { yes, no }).Show();
         }

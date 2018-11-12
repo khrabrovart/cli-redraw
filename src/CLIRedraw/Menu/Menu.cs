@@ -144,8 +144,10 @@ namespace CLIRedraw
             }
         }
 
-        // TODO: Add summary to all public methods.
-        // TODO: Add methods with empty Action<> so that MenuItem parameter is not needed.
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="menuItem">Menu item.</param>
         public void Add(MenuItem menuItem)
         {
             _items.Add(menuItem);
@@ -160,26 +162,71 @@ namespace CLIRedraw
             }
         }
 
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
         public void Add(string title)
         {
             Add(new MenuItem(title));
         }
 
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
+        /// <param name="description">Menu item description.</param>
         public void Add(string title, string description)
         {
             Add(new MenuItem(title, description));
         }
 
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
+        /// <param name="action">Menu item default action.</param>
         public void Add(string title, Action action)
         {
             Add(new MenuItem(title, new MenuItemAction(action)));
         }
 
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
+        /// <param name="description">Menu item description.</param>
+        /// <param name="action">Menu item default action.</param>
         public void Add(string title, string description, Action action)
         {
             Add(new MenuItem(title, description, new MenuItemAction(action)));
         }
 
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
+        /// <param name="actions">Menu item actions map.</param>
+        public void Add(string title, IDictionary<ConsoleKey, Action> actions)
+        {
+            Add(new MenuItem(title, actions));
+        }
+
+        /// <summary>
+        /// Adds new menu item to the menu.
+        /// </summary>
+        /// <param name="title">Menu item title.</param>
+        /// <param name="description">Menu item description.</param>
+        /// <param name="actions">Menu item actions map.</param>
+        public void Add(string title, string description, IDictionary<ConsoleKey, Action> actions)
+        {
+            Add(new MenuItem(title, description, actions));
+        }
+
+        /// <summary>
+        /// Removes menu item from the menu.
+        /// </summary>
+        /// <param name="menuItem">Menu item to remove.</param>
         public void Remove(MenuItem menuItem)
         {
             if (Current == menuItem && _currentIndex == LastIndex)
@@ -204,6 +251,10 @@ namespace CLIRedraw
             }
         }
 
+        /// <summary>
+        /// Removes menu item from the menu.
+        /// </summary>
+        /// <param name="index">Index of the menu item to remove.</param>
         public void Remove(int index)
         {
             if (_currentIndex == index && _currentIndex == LastIndex)
@@ -269,26 +320,28 @@ namespace CLIRedraw
             return Current.TryGetAction(key, out var action) ? action : null;
         }
 
-        private void InvokeAction(MenuItemAction action)
+        private void InvokeAction(MenuItemAction menuItemAction)
         {
-            if (action == null)
+            if (menuItemAction?.Action == null)
             {
                 return;
             }
 
-            if (action.ClearBeforeAction)
+            if (menuItemAction.ClearBeforeAction)
             {
                 Console.Clear();
             }
 
-            if (action.ShowCursor)
+            if (menuItemAction.IsCursorVisible)
             {
                 Console.CursorVisible = true;
             }
 
+            var context = new MenuItemActionContext(this, Current, menuItemAction);
+
             _isInvoking = true;
 
-            action.Action.Invoke(Current);
+            menuItemAction.Action.Invoke(context);
 
             _isInvoking = false;
 
@@ -297,7 +350,7 @@ namespace CLIRedraw
                 return;
             }
 
-            if ((action.ClearBeforeAction || _needRedraw) && !action.IsTerminator)
+            if ((menuItemAction.ClearBeforeAction || _needRedraw) && !menuItemAction.IsTerminator)
             {
                 Redraw();
             }
