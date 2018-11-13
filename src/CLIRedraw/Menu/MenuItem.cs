@@ -6,7 +6,7 @@ namespace CLIRedraw
 {
     public class MenuItem
     {
-        private IDictionary<ConsoleKey, MenuItemAction> _actions;
+        private IDictionary<ConsoleKey, MenuAction> _actions;
 
         /// <summary>
         /// Represents menu item.
@@ -26,7 +26,7 @@ namespace CLIRedraw
             Title = title;
             Description = description;
 
-            _actions = new Dictionary<ConsoleKey, MenuItemAction>();
+            _actions = new Dictionary<ConsoleKey, MenuAction>();
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace CLIRedraw
         /// <param name="title">Menu item title.</param>
         /// <param name="action">Menu item default action.</param>
         public MenuItem(string title, Action action)
-            : this(title, new MenuItemAction(action))
+            : this(title, new MenuAction(action))
         {
         }
 
@@ -44,8 +44,8 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, Action<MenuItemActionContext> action)
-            : this(title, new MenuItemAction(action))
+        public MenuItem(string title, Action<MenuActionContext> action)
+            : this(title, new MenuAction(action))
         {
         }
 
@@ -54,7 +54,7 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, MenuItemAction action)
+        public MenuItem(string title, MenuAction action)
             : this(title, null, action)
         {
         }
@@ -66,7 +66,7 @@ namespace CLIRedraw
         /// <param name="description">Menu item description.</param>
         /// <param name="action">Menu item default action.</param>
         public MenuItem(string title, string description, Action action)
-            : this(title, description, new MenuItemAction(action))
+            : this(title, description, new MenuAction(action))
         {
         }
 
@@ -76,8 +76,8 @@ namespace CLIRedraw
         /// <param name="title">Menu item title.</param>
         /// <param name="description">Menu item description.</param>
         /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, string description, Action<MenuItemActionContext> action)
-            : this(title, description, new MenuItemAction(action))
+        public MenuItem(string title, string description, Action<MenuActionContext> action)
+            : this(title, description, new MenuAction(action))
         {
         }
 
@@ -87,12 +87,12 @@ namespace CLIRedraw
         /// <param name="title">Menu item title.</param>
         /// <param name="description">Menu item description.</param>
         /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, string description, MenuItemAction action)
+        public MenuItem(string title, string description, MenuAction action)
         {
             Title = title;
             Description = description;
 
-            _actions = new Dictionary<ConsoleKey, MenuItemAction>();
+            _actions = new Dictionary<ConsoleKey, MenuAction>();
 
             if (action != null)
             {
@@ -115,7 +115,7 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, IDictionary<ConsoleKey, Action<MenuItemActionContext>> actions)
+        public MenuItem(string title, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
             : this(title, null, actions)
         {
         }
@@ -125,7 +125,7 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, IDictionary<ConsoleKey, MenuItemAction> actions)
+        public MenuItem(string title, IDictionary<ConsoleKey, MenuAction> actions)
             : this(title, null, actions)
         {
         }
@@ -143,8 +143,8 @@ namespace CLIRedraw
 
             _actions = actions?
                 .Where(a => a.Value != null)
-                .ToDictionary(a => a.Key, a => new MenuItemAction(a.Value))
-                ?? new Dictionary<ConsoleKey, MenuItemAction>();
+                .ToDictionary(a => a.Key, a => new MenuAction(a.Value))
+                ?? new Dictionary<ConsoleKey, MenuAction>();
         }
 
         /// <summary>
@@ -153,15 +153,15 @@ namespace CLIRedraw
         /// <param name="title">Menu item title.</param>
         /// <param name="description">Menu item description.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action<MenuItemActionContext>> actions)
+        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
         {
             Title = title;
             Description = description;
 
             _actions = actions?
                 .Where(a => a.Value != null)
-                .ToDictionary(a => a.Key, a => new MenuItemAction(a.Value))
-                ?? new Dictionary<ConsoleKey, MenuItemAction>();
+                .ToDictionary(a => a.Key, a => new MenuAction(a.Value))
+                ?? new Dictionary<ConsoleKey, MenuAction>();
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace CLIRedraw
         /// <param name="title">Menu item title.</param>
         /// <param name="description">Menu item description.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, string description, IDictionary<ConsoleKey, MenuItemAction> actions)
+        public MenuItem(string title, string description, IDictionary<ConsoleKey, MenuAction> actions)
         {
             Title = title;
             Description = description;
@@ -178,7 +178,7 @@ namespace CLIRedraw
             _actions = actions?
                 .Where(a => a.Value != null)
                 .ToDictionary(a => a.Key, a => a.Value) 
-                ?? new Dictionary<ConsoleKey, MenuItemAction>();
+                ?? new Dictionary<ConsoleKey, MenuAction>();
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="key">Action key.</param>
         /// <param name="action">Menu item action.</param>
-        public void AddOrUpdateAction(ConsoleKey key, MenuItemAction action)
+        public void AddOrUpdateAction(ConsoleKey key, MenuAction action)
         {
             if (action == null)
             {
@@ -218,9 +218,9 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="key">Action key.</param>
         /// <param name="action">Menu item action.</param>
-        public void AddOrUpdateAction(ConsoleKey key, Action<MenuItemActionContext> action)
+        public void AddOrUpdateAction(ConsoleKey key, Action<MenuActionContext> action)
         {
-            AddOrUpdateAction(key, new MenuItemAction(action));
+            AddOrUpdateAction(key, new MenuAction(action));
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace CLIRedraw
         /// <param name="action">Menu item action.</param>
         public void AddOrUpdateAction(ConsoleKey key, Action action)
         {
-            AddOrUpdateAction(key, new MenuItemAction(action));
+            AddOrUpdateAction(key, new MenuAction(action));
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace CLIRedraw
         /// <param name="key">Action key.</param>
         /// <param name="action">Menu item action.</param>
         /// <returns><see langword="true"/> if action exists; otherwise, <see langword="false"/>.</returns>
-        public bool TryGetAction(ConsoleKey key, out MenuItemAction action)
+        public bool TryGetAction(ConsoleKey key, out MenuAction action)
         {
             if (_actions.TryGetValue(key, out var result))
             {

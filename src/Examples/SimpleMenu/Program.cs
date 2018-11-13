@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using CLIRedraw;
 
 namespace SimpleMenu
@@ -9,80 +7,32 @@ namespace SimpleMenu
     {
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-
-            var items = new List<MenuItem>
-            {
-                new MenuItem("First item"),
-                new MenuItem("Second item"),
-                new MenuItem("Sum", new MenuItemAction(Sum)),
-                new MenuItem("Forth", "With action", new MenuItemAction(() => SomeAction1())
-                {
-                    IsCursorVisible = false
-                }),
-                new MenuItem("Fifth", "With exit after action", new MenuItemAction(
-                    mi => 
-                    {
-                        SomeAction2();
-                        ConfirmExit(mi);
-                    })
-                {
-                    IsCursorVisible = false,
-                    IsTerminator = true
-                }),
-                new MenuItem("Exit", mi => ConfirmExit(mi))
-            };
-
-            var menu = new Menu("Welcom to Simple Menu!\nSome menu title\nConsists of several text lines", items)
+            var menu = new Menu("Simple Menu")
             {
                 ForegroundColor = ConsoleColor.DarkYellow
             };
 
-            var removeMeMenuItem = new MenuItem("Delete me!", "Removes itself");
-            removeMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, mi => menu.Remove(removeMeMenuItem));
-            menu.Add(removeMeMenuItem);
-
-            int i = 0;
-            var addMeMenuItem = new MenuItem("Add more!", "Adds new menu item");
-
-            addMeMenuItem.AddOrUpdateAction(ConsoleKey.Enter, new MenuItemAction(() => AddItem(menu, i++))
+            var sayHelloMenuAction = new MenuAction(SayHello)
             {
-                IsCursorVisible = false,
-                ClearBeforeAction = false
-            });
+                IsCursorVisible = false
+            };
 
-            menu.Add(addMeMenuItem);
+            menu.Add(new MenuItem("Say Hello!", sayHelloMenuAction));
+            menu.Add(new MenuItem("Exit", new MenuAction
+            {
+                IsTerminator = true
+            }));
 
             menu.Show();
         }
 
-        public static void SomeAction1(int? index = null)
+        private static void SayHello()
         {
-            Console.WriteLine("Some action");
-
-            if (index.HasValue)
-            {
-                Console.WriteLine($"Index is {index}");
-            }
-
+            Console.WriteLine("Hello, World!");
             Console.ReadKey();
         }
 
-        public static void SomeAction2()
-        {
-            Console.WriteLine("Application will exit after any key is pressed");
-            Console.ReadKey();
-        }
-
-        public static void AddItem(Menu menu, int index)
-        {
-            var menuItem = new MenuItem($"New menu item {index}", "Enter or Delete", mi => SomeAction1(index));
-            menuItem.AddOrUpdateAction(ConsoleKey.Delete, mi => menu.Remove(menuItem));
-
-            menu.Add(menuItem);
-        }
-
-        public static void Sum()
+        private static void Sum()
         {
             if (int.TryParse(InputPrompt("Enter first number"), out var a) &&
                 int.TryParse(InputPrompt("Enter second number"), out var b))
@@ -95,15 +45,6 @@ namespace SimpleMenu
             }
 
             Console.ReadKey();
-        }
-
-        public static void ConfirmExit(MenuItemActionContext ctx)
-        {
-            var yes = new MenuItem("Yes", new MenuItemAction(() => ctx.Action.IsTerminator = true) { IsTerminator = true });
-
-            var no = new MenuItem("No", new MenuItemAction(() => ctx.Action.IsTerminator = false) { IsTerminator = true });
-
-            new Menu("Are you sure you wanna quit?", new[] { yes, no }).Show();
         }
 
         private static string InputPrompt(string promptText)

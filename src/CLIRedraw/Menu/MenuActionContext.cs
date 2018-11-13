@@ -1,12 +1,12 @@
 ﻿namespace CLIRedraw
 {
-    public class MenuItemActionContext
+    public class MenuActionContext
     {
-        internal MenuItemActionContext(Menu menu, MenuItem menuItem, MenuItemAction menuItemAction)
+        internal MenuActionContext(Menu menu, MenuItem menuItem, MenuAction menuAction)
         {
             Menu = menu;
-            Item = menuItem;
-            Action = menuItemAction;
+            MenuItem = menuItem;
+            MenuAction = menuAction;
         }
 
         /// <summary>
@@ -17,11 +17,11 @@
         /// <summary>
         /// Gets the menu item that invoked the action.
         /// </summary>
-        public MenuItem Item { get; private set; }
+        public MenuItem MenuItem { get; private set; }
 
         /// <summary>
         /// Gets the action.
         /// </summary>
-        public MenuItemAction Action { get; private set; }
+        public MenuAction MenuAction { get; private set; }
     }
 }

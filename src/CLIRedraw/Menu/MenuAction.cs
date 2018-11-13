@@ -2,34 +2,20 @@
 
 namespace CLIRedraw
 {
-    public class MenuItemAction
+    public class MenuAction
     {
         /// <summary>
-        /// Represents empty menu item action.
-        /// This constructor is commonly used to create prompts.
+        /// Represents menu item action.
         /// </summary>
-        public MenuItemAction()
+        public MenuAction()
         {
-        }
-
-        /// <summary>
-        /// Represents empty menu item action.
-        /// This constructor is commonly used to create prompts.
-        /// </summary>
-        /// <param name="isTerminator">
-        /// Indicates whether the top level menu should be 
-        /// destroyed after the action invocation.
-        /// </param>
-        public MenuItemAction(bool isTerminator)
-        {
-            IsTerminator = isTerminator;
         }
 
         /// <summary>
         /// Represents menu item action.
         /// </summary>
         /// <param name="action">Action.</param>
-        public MenuItemAction(Action<MenuItemActionContext> action)
+        public MenuAction(Action<MenuActionContext> action)
         {
             Action = action;
         }
@@ -38,7 +24,7 @@ namespace CLIRedraw
         /// Represents menu item action.
         /// </summary>
         /// <param name="action">Action.</param>
-        public MenuItemAction(Action action)
+        public MenuAction(Action action)
         {
             Action = mi => action?.Invoke();
         }
@@ -46,7 +32,7 @@ namespace CLIRedraw
         /// <summary>
         /// Gets the menu item action.
         /// </summary>
-        public Action<MenuItemActionContext> Action { get; }
+        public Action<MenuActionContext> Action { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether 
