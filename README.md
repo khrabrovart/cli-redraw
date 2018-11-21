@@ -1,1 +1,4 @@
 # CLI Redraw
+
+* Add description to github repo
+* Add hidden descriptions for menu items. Description is only visible if menu item is selected.
