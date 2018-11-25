@@ -13,20 +13,15 @@ namespace SimplePrompt
 
         private static void ExitPrompt(MenuActionContext parentContext)
         {
-            var yesMenuAction = new MenuAction(() => parentContext.MenuAction.IsTerminator = true)
-            {
-                IsTerminator = true
-            };
-
-            var noMenuAction = new MenuAction(() => parentContext.MenuAction.IsTerminator = false)
-            {
-                IsTerminator = true
-            };
-
             var prompt = new Menu();
 
-            prompt.Add("Yes", yesMenuAction);
-            prompt.Add("No", noMenuAction);
+            var yesMenuItem = prompt.Add("Yes", context => 
+            {
+                context.Menu.Close();
+                parentContext.Menu.Close();
+            });
+
+            var noMenuItem = prompt.Add("No", context => context.Menu.Close());
 
             prompt.Show();
         }

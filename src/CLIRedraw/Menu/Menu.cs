@@ -6,11 +6,12 @@ namespace CLIRedraw
 {
     public class Menu
     {
-        private int _currentIndex;
         private List<MenuItem> _items;
-        private bool _isInvoking;
+        private MenuActionContext _invocationContext;
+        private int _currentIndex;
         private int _titleLinesCount;
         private int _currentBufferWidth;
+        private bool _isClosed;
         private bool _needRedraw;
 
         /// <summary>
@@ -57,7 +58,7 @@ namespace CLIRedraw
         /// <summary>
         /// Gets currently selected menu item.
         /// </summary>
-        public MenuItem Current => _items[_currentIndex];
+        public MenuItem CurrentItem => _items[_currentIndex];
 
         /// <summary>
         /// Gets the menu items.
@@ -102,21 +103,24 @@ namespace CLIRedraw
         private int LastIndex => _items.Count - 1;
 
         private bool IsEmpty => _items.Count == 0;
-        
+
+        private bool ShouldBeClosed => IsEmpty || _isClosed;
+
+        private bool IsInvoking => _invocationContext != null;
+
         /// <summary>
         /// Shows the menu. Does nothing if the menu has no items.
         /// </summary>
         public void Show()
         {
-            if (IsEmpty)
+            if (ShouldBeClosed)
             {
                 return;
             }
 
-            var exit = false;
             Redraw();
 
-            while (!exit)
+            while (!ShouldBeClosed)
             {
                 var keyInfo = Console.ReadKey(true);
 
@@ -136,7 +140,6 @@ namespace CLIRedraw
                         if (action != null)
                         {
                             InvokeAction(action);
-                            exit = _currentIndex < 0 || action.IsTerminator;
                         }
 
                         break;
@@ -145,40 +148,30 @@ namespace CLIRedraw
         }
 
         /// <summary>
+        /// Closes the menu.
+        /// </summary>
+        public void Close()
+        {
+            _isClosed = true;
+        }
+
+        /// <summary>
         /// Adds new menu item to the menu.
         /// </summary>
         /// <param name="menuItem">Menu item.</param>
         public void Add(MenuItem menuItem)
         {
-            _items.Add(menuItem);
-
-            if (!_isInvoking)
-            {
-                DrawItem(LastIndex);
-            }
-            else
-            {
-                _needRedraw = true;
-            }
+            AddMenuItem(menuItem);
         }
 
         /// <summary>
         /// Adds new menu item to the menu.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        public void Add(string title)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title)
         {
-            Add(new MenuItem(title));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        public void Add(string title, string description)
-        {
-            Add(new MenuItem(title, description));
+            return AddMenuItem(new MenuItem(title));
         }
 
         /// <summary>
@@ -186,20 +179,21 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="action">Menu item default action.</param>
-        public void Add(string title, Action action)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title, Action action)
         {
-            Add(new MenuItem(title, new MenuAction(action)));
+            return AddMenuItem(new MenuItem(title, new MenuAction(action)));
         }
 
         /// <summary>
         /// Adds new menu item to the menu.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
         /// <param name="action">Menu item default action.</param>
-        public void Add(string title, string description, Action action)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title, Action<MenuActionContext> action)
         {
-            Add(new MenuItem(title, description, new MenuAction(action)));
+            return AddMenuItem(new MenuItem(title, action));
         }
 
         /// <summary>
@@ -207,20 +201,21 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public void Add(string title, IDictionary<ConsoleKey, Action> actions)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title, IDictionary<ConsoleKey, Action> actions)
         {
-            Add(new MenuItem(title, actions));
+            return AddMenuItem(new MenuItem(title, actions));
         }
 
         /// <summary>
         /// Adds new menu item to the menu.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
         /// <param name="actions">Menu item actions map.</param>
-        public void Add(string title, string description, IDictionary<ConsoleKey, Action> actions)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
         {
-            Add(new MenuItem(title, description, actions));
+            return AddMenuItem(new MenuItem(title, actions));
         }
 
         /// <summary>
@@ -228,30 +223,10 @@ namespace CLIRedraw
         /// </summary>
         /// <param name="title">Menu item title.</param>
         /// <param name="action">Menu item default action.</param>
-        public void Add(string title, MenuAction action)
+        /// <returns>Created menu item.</returns>
+        public MenuItem Add(string title, MenuAction action)
         {
-            Add(new MenuItem(title, action));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="action">Menu item default action.</param>
-        public void Add(string title, string description, MenuAction action)
-        {
-            Add(new MenuItem(title, description, action));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        public void Add(string title, Action<MenuActionContext> action)
-        {
-            Add(new MenuItem(title, action));
+            return AddMenuItem(new MenuItem(title, action));
         }
 
         /// <summary>
@@ -260,7 +235,7 @@ namespace CLIRedraw
         /// <param name="menuItem">Menu item to remove.</param>
         public void Remove(MenuItem menuItem)
         {
-            if (Current == menuItem && _currentIndex == LastIndex)
+            if (CurrentItem == menuItem && _currentIndex == LastIndex)
             {
                 _currentIndex--;
             }
@@ -272,7 +247,7 @@ namespace CLIRedraw
                 return;
             }
 
-            if (!_isInvoking)
+            if (!IsInvoking)
             {
                 Redraw();
             }
@@ -300,7 +275,7 @@ namespace CLIRedraw
                 return;
             }
 
-            if (!_isInvoking)
+            if (!IsInvoking)
             {
                 Redraw();
             }
@@ -308,6 +283,22 @@ namespace CLIRedraw
             {
                 _needRedraw = true;
             }
+        }
+
+        private MenuItem AddMenuItem(MenuItem menuItem)
+        {
+            _items.Add(menuItem);
+
+            if (!IsInvoking || !_invocationContext.MenuAction.ClearBeforeAction)
+            {
+                DrawItem(LastIndex);
+            }
+            else
+            {
+                _needRedraw = true;
+            }
+
+            return menuItem;
         }
 
         private void Up()
@@ -348,7 +339,7 @@ namespace CLIRedraw
 
         private MenuAction GetAction(ConsoleKey key)
         {
-            return Current.TryGetAction(key, out var action) ? action : null;
+            return CurrentItem.TryGetAction(key, out var action) ? action : null;
         }
 
         private void InvokeAction(MenuAction menuAction)
@@ -368,23 +359,21 @@ namespace CLIRedraw
                 Console.CursorVisible = true;
             }
 
-            var context = new MenuActionContext(this, Current, menuAction);
+            InvokeInContext(menuAction);
 
-            _isInvoking = true;
-
-            menuAction.Action.Invoke(context);
-
-            _isInvoking = false;
-
-            if (IsEmpty)
-            {
-                return;
-            }
-
-            if ((menuAction.ClearBeforeAction || _needRedraw) && !menuAction.IsTerminator)
+            if ((menuAction.ClearBeforeAction || _needRedraw) && !ShouldBeClosed)
             {
                 Redraw();
             }
+        }
+
+        private void InvokeInContext(MenuAction menuAction)
+        {
+            _invocationContext = new MenuActionContext(this, CurrentItem, menuAction);
+
+            menuAction?.Action?.Invoke(_invocationContext);
+
+            _invocationContext = null;
         }
 
         private void Redraw()
@@ -412,7 +401,7 @@ namespace CLIRedraw
                 return;
             }
 
-            Console.SetCursorPosition(0, GetLinesCountToIndex(index));
+            Console.SetCursorPosition(0, GetLinesCountToMenuItem(index));
             Console.CursorVisible = false;
 
             ColorConsole.Write(menuItem.Title,
@@ -421,7 +410,7 @@ namespace CLIRedraw
 
             if (!string.IsNullOrWhiteSpace(menuItem.Description))
             {
-                ColorConsole.WriteLine($" ({menuItem.Description})");
+                Console.WriteLine($" ({menuItem.Description})");
             }
             else
             {
@@ -457,11 +446,11 @@ namespace CLIRedraw
             });
         }
 
-        private int GetLinesCountToIndex(int index)
+        private int GetLinesCountToMenuItem(int menuItemIndex)
         {
             var linesCount = _titleLinesCount;
 
-            for (int i = 0; i < index; i++)
+            for (int i = 0; i < menuItemIndex; i++)
             {
                 linesCount += GetLinesCount(_items[i].ToString());
             }

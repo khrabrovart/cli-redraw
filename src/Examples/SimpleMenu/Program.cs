@@ -17,11 +17,9 @@ namespace SimpleMenu
                 IsCursorVisible = false
             };
 
-            menu.Add(new MenuItem("Say Hello!", sayHelloMenuAction));
-            menu.Add(new MenuItem("Exit", new MenuAction
-            {
-                IsTerminator = true
-            }));
+            menu.Add("Say Hello!", sayHelloMenuAction);
+            menu.Add("Calc sum", Sum);
+            menu.Add("Exit", context => context.Menu.Close());
 
             menu.Show();
         }

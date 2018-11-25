@@ -192,6 +192,11 @@ namespace CLIRedraw
         public string Description { get; }
 
         /// <summary>
+        /// Gets default menu item action (Enter key).
+        /// </summary>
+        public MenuAction DefaultAction => TryGetAction(ConsoleKey.Enter, out var action) ? action : null;
+
+        /// <summary>
         /// Adds or updates the menu item action by its key.
         /// </summary>
         /// <param name="key">Action key.</param>

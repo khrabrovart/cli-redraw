@@ -36,19 +36,15 @@ namespace CLIRedraw
 
         /// <summary>
         /// Gets or sets a value that indicates whether 
-        /// the top level menu should be destroyed after the action invocation.
-        /// </summary>
-        public bool IsTerminator { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether 
-        /// the console should be cleared before the action invocation.
+        /// the console should be cleared before the action invocation. 
+        /// This value is <see langword="true"/> by default.
         /// </summary>
         public bool ClearBeforeAction { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value that indicates whether 
-        /// the cursor should be visible during the action invocation.
+        /// the cursor should be visible during the action invocation. 
+        /// This value is <see langword="true"/> by default.
         /// </summary>
         public bool IsCursorVisible { get; set; } = true;
     }

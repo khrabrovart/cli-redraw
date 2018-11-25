@@ -11,12 +11,10 @@ namespace DynamicMenu
         {
             var menu = new Menu("Dynamic Menu");
 
-            menu.Add("Add menu item", ctx => AddMenuItem(ctx.Menu));
-            menu.Add("Exit", new MenuAction
-            {
-                IsTerminator = true,
-                IsCursorVisible = false
-            });
+            var addMenuItem = menu.Add("Add menu item", ctx => AddMenuItem(ctx.Menu));
+            addMenuItem.DefaultAction.ClearBeforeAction = false;
+
+            menu.Add("Exit", context => context.Menu.Close());
 
             menu.Show();
         }
