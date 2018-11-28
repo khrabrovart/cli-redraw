@@ -12,14 +12,14 @@ namespace SimpleMenu
                 ForegroundColor = ConsoleColor.DarkYellow
             };
 
-            var sayHelloMenuAction = new MenuAction(SayHello)
-            {
-                IsCursorVisible = false
-            };
+            var sayHelloMenuItem = menu.Add("Say Hello!", SayHello);
+            sayHelloMenuItem.DefaultAction.IsCursorVisible = false;
+            sayHelloMenuItem.Description = "Print Hello string";
 
-            menu.Add("Say Hello!", sayHelloMenuAction);
-            menu.Add("Calc sum", Sum);
-            menu.Add("Exit", context => context.Menu.Close());
+            var calcSumMenuItem = menu.Add("Calc sum", Sum);
+            calcSumMenuItem.Description = "Calculates sum of numbers";
+
+            var exitMenuItem = menu.Add("Exit", context => context.Menu.Close());
 
             menu.Show();
         }

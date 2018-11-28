@@ -339,7 +339,7 @@ namespace CLIRedraw
 
         private MenuAction GetAction(ConsoleKey key)
         {
-            return CurrentItem.TryGetAction(key, out var action) ? action : null;
+            return CurrentItem.Actions.TryGetValue(key, out var action) ? action : null;
         }
 
         private void InvokeAction(MenuAction menuAction)

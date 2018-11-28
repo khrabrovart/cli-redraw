@@ -184,17 +184,22 @@ namespace CLIRedraw
         /// <summary>
         /// Gets the menu item title.
         /// </summary>
-        public string Title { get; }
+        public string Title { get; set; }
 
         /// <summary>
         /// Gets the menu item description.
         /// </summary>
-        public string Description { get; }
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets the menu item actions.
+        /// </summary>
+        public IReadOnlyDictionary<ConsoleKey, MenuAction> Actions => (IReadOnlyDictionary<ConsoleKey, MenuAction>)_actions;
 
         /// <summary>
         /// Gets default menu item action (Enter key).
         /// </summary>
-        public MenuAction DefaultAction => TryGetAction(ConsoleKey.Enter, out var action) ? action : null;
+        public MenuAction DefaultAction => _actions.TryGetValue(ConsoleKey.Enter, out var action) ? action : null;
 
         /// <summary>
         /// Adds or updates the menu item action by its key.
@@ -236,25 +241,6 @@ namespace CLIRedraw
         public void AddOrUpdateAction(ConsoleKey key, Action action)
         {
             AddOrUpdateAction(key, new MenuAction(action));
-        }
-
-        /// <summary>
-        /// Gets the menu item action by its key. 
-        /// A return value indicates whether the operation succeeded.
-        /// </summary>
-        /// <param name="key">Action key.</param>
-        /// <param name="action">Menu item action.</param>
-        /// <returns><see langword="true"/> if action exists; otherwise, <see langword="false"/>.</returns>
-        public bool TryGetAction(ConsoleKey key, out MenuAction action)
-        {
-            if (_actions.TryGetValue(key, out var result))
-            {
-                action = result;
-                return true;
-            }
-
-            action = null;
-            return false;
         }
 
         public override string ToString()
