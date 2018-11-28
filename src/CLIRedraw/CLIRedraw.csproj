@@ -6,7 +6,7 @@
     <AssemblyName>CLIRedraw</AssemblyName>
     <PackageId>CLIRedraw</PackageId>
     <Title>CLIRedraw</Title>
-    <Description>Advanced console controls for .NET</Description>
+    <Description>Advanced console controls</Description>
     <Authors>Arthur Khrabrov</Authors>
     <Owners>Arthur Khrabrov</Owners>
     <PackageProjectUrl>https://github.com/khrabrovart/cli-redraw</PackageProjectUrl>
@@ -14,7 +14,7 @@
     <PackageLicenseUrl>https://github.com/khrabrovart/cli-redraw/blob/master/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/khrabrovart/cli-redraw/master/src/nuget-icon.png</PackageIconUrl>
     <Copyright>Copyright 2018 (C) Arthur Khrabrov. All rights reserved.</Copyright>
-    <PackageTags>console redraw controls cli</PackageTags>
+    <PackageTags>console redraw controls cli cli-redraw menu</PackageTags>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -23,12 +23,16 @@
     <!-- Consider only including a major version in the AssemblyVersion. -->
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    <PackageVersion>2.0.0-beta4</PackageVersion>
+    <PackageVersion>2.0.0-beta6</PackageVersion>
 
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>.\bin\Release\CLIRedraw.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
