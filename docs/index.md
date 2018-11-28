@@ -1,2 +1,0 @@
-CLIRedraw Index Page
-====================
