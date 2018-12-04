@@ -9,7 +9,7 @@ namespace SimpleMenu
         {
             var menu = new Menu("Simple Menu")
             {
-                ForegroundColor = ConsoleColor.DarkYellow
+                ForegroundColor = ConsoleColor.DarkGray
             };
 
             var sayHelloMenuItem = menu.Add("Say Hello!", SayHello);
@@ -32,23 +32,21 @@ namespace SimpleMenu
 
         private static void Sum()
         {
-            if (int.TryParse(InputPrompt("Enter first number"), out var a) &&
-                int.TryParse(InputPrompt("Enter second number"), out var b))
+            var regexInput = new Int32Input("Enter first number")
             {
-                Console.WriteLine($"Sum is {a + b}");
-            }
-            else
-            {
-                ColorConsole.WriteLine("Invalid value!", foregroundColor: ConsoleColor.Red);
-            }
+                ClearBeforeInput = false
+            };
 
+            var int32Input = new Int32Input("Enter second number")
+            {
+                ClearBeforeInput = false
+            };
+
+            var a = regexInput.Show();
+            var b = int32Input.Show();
+
+            Console.WriteLine($"Sum is {a + b}");
             Console.ReadKey();
-        }
-
-        private static string InputPrompt(string promptText)
-        {
-            Console.Write($"{promptText}: ");
-            return Console.ReadLine();
         }
     }
 }

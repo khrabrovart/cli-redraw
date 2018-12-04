@@ -1,8 +1,8 @@
 ﻿namespace CLIRedraw
 {
-    public class MenuActionContext
+    public sealed class MenuActionContext
     {
-        internal MenuActionContext(Menu menu, MenuItem menuItem, MenuAction menuAction)
+        public MenuActionContext(Menu menu, MenuItem menuItem, MenuAction menuAction)
         {
             Menu = menu;
             MenuItem = menuItem;
