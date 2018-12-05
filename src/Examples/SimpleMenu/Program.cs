@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Drawing;
 using CLIRedraw;
 
 namespace SimpleMenu
 {
     public class Program
     {
+        private static Point _point;
+
         static void Main(string[] args)
         {
             var menu = new Menu("Simple Menu")
@@ -32,18 +35,20 @@ namespace SimpleMenu
 
         private static void Sum()
         {
-            var regexInput = new Int32Input("Enter first number")
+            var myInput = new Input
             {
-                ClearBeforeInput = false
+                TextForegroundColor = ConsoleColor.Yellow,
+                InputForegroundColor = ConsoleColor.Green
             };
 
-            var int32Input = new Int32Input("Enter second number")
-            {
-                ClearBeforeInput = false
-            };
+            int a;
+            int b;
 
-            var a = regexInput.Show();
-            var b = int32Input.Show();
+            while (!int.TryParse(myInput.Show("Enter first number"), out a) || !int.TryParse(myInput.Show("Enter second number"), out b))
+            {
+                ColorConsole.WriteLine("Invalid input!", foregroundColor: ConsoleColor.Red);
+                Console.ReadKey();
+            }
 
             Console.WriteLine($"Sum is {a + b}");
             Console.ReadKey();
