@@ -4,15 +4,17 @@ namespace CLIRedraw
 {
     public class Input
     {
-        public ConsoleColor TextBackgroundColor { get; set; } = ConsoleColor.Black;
+        public ConsoleColor TextBackgroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
 
-        public ConsoleColor TextForegroundColor { get; set; } = ConsoleColor.White;
+        public ConsoleColor TextForegroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
 
-        public ConsoleColor InputBackgroundColor { get; set; } = ConsoleColor.Black;
+        public ConsoleColor InputBackgroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
 
-        public ConsoleColor InputForegroundColor { get; set; } = ConsoleColor.White;
+        public ConsoleColor InputForegroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
 
         public bool ClearBeforeInput { get; set; } = true;
+
+        public bool ClearAfterInput { get; set; } = true;
 
         public string Show(string text)
         {
@@ -21,14 +23,13 @@ namespace CLIRedraw
                 Console.Clear();
             }
 
-            ColorConsole.Write($"{text}: ", TextBackgroundColor, TextForegroundColor);
+            ColoredConsole.Write($"{text}: ", TextBackgroundColor, TextForegroundColor);
+            var input = ColoredConsole.ReadLine(InputBackgroundColor, InputForegroundColor);
 
-            Console.BackgroundColor = InputBackgroundColor;
-            Console.ForegroundColor = InputForegroundColor;
-
-            var input = Console.ReadLine();
-
-            Console.ResetColor();
+            if (ClearAfterInput)
+            {
+                Console.Clear();
+            }
 
             return input;
         }

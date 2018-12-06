@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Drawing;
 using CLIRedraw;
 
 namespace SimpleMenu
 {
     public class Program
     {
-        private static Point _point;
-
         static void Main(string[] args)
         {
-            var menu = new Menu("Simple Menu")
-            {
-                ForegroundColor = ConsoleColor.DarkGray
-            };
+            var menu = new Menu("Simple Menu Title");
 
             var sayHelloMenuItem = menu.Add("Say Hello!", SayHello);
             sayHelloMenuItem.DefaultAction.IsCursorVisible = false;
@@ -35,18 +29,14 @@ namespace SimpleMenu
 
         private static void Sum()
         {
-            var myInput = new Input
-            {
-                TextForegroundColor = ConsoleColor.Yellow,
-                InputForegroundColor = ConsoleColor.Green
-            };
+            var myInput = new Input();
 
             int a;
             int b;
 
             while (!int.TryParse(myInput.Show("Enter first number"), out a) || !int.TryParse(myInput.Show("Enter second number"), out b))
             {
-                ColorConsole.WriteLine("Invalid input!", foregroundColor: ConsoleColor.Red);
+                ColoredConsole.WriteLine("Invalid input!", foregroundColor: ConsoleColor.Red);
                 Console.ReadKey();
             }
 

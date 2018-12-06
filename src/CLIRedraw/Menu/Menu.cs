@@ -78,27 +78,27 @@ namespace CLIRedraw
         /// <summary>
         /// Gets or sets background color for not selected menu items.
         /// </summary>
-        public ConsoleColor BackgroundColor { get; set; } = ConsoleColor.Black;
+        public ConsoleColor BackgroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
 
         /// <summary>
         /// Gets or sets foreground color for not selected menu items.
         /// </summary>
-        public ConsoleColor ForegroundColor { get; set; } = ConsoleColor.White;
+        public ConsoleColor ForegroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
 
         /// <summary>
         /// Gets or sets background color for selected menu items.
         /// </summary>
-        public ConsoleColor SelectedBackgroundColor { get; set; } = ConsoleColor.DarkGray;
+        public ConsoleColor SelectedBackgroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
 
         /// <summary>
         /// Gets or sets foreground color for selected menu items.
         /// </summary>
-        public ConsoleColor SelectedForegroundColor { get; set; } = ConsoleColor.Green;
+        public ConsoleColor SelectedForegroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
 
         /// <summary>
         /// Gets or sets the menu title color.
         /// </summary>
-        public ConsoleColor TitleColor { get; set; } = ConsoleColor.Green;
+        public ConsoleColor TitleColor { get; set; } = ColoredConsole.DefaultForegroundColor;
 
         private int LastIndex => _items.Count - 1;
 
@@ -308,10 +308,7 @@ namespace CLIRedraw
                 return;
             }
 
-            if (CheckBufferWidthChanged())
-            {
-                Redraw();
-            }
+            CheckBufferWidthChanged();
 
             var previousIndex = _currentIndex;
             _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : LastIndex;
@@ -326,10 +323,7 @@ namespace CLIRedraw
                 return;
             }
 
-            if (CheckBufferWidthChanged())
-            {
-                Redraw();
-            }
+            CheckBufferWidthChanged();
 
             var previousIndex = _currentIndex;
             _currentIndex = _currentIndex < LastIndex ? _currentIndex + 1 : 0;
@@ -382,7 +376,8 @@ namespace CLIRedraw
 
             if (!string.IsNullOrWhiteSpace(Title))
             {
-                ColorConsole.WriteLine(Title, foregroundColor: TitleColor);
+                ColoredConsole.WriteLine(Title, foregroundColor: TitleColor);
+                Console.WriteLine();
             }
 
             for (int i = 0; i < _items.Count; i++)
@@ -404,7 +399,7 @@ namespace CLIRedraw
             Console.SetCursorPosition(0, GetLinesCountToMenuItem(index));
             Console.CursorVisible = false;
 
-            ColorConsole.Write(menuItem.Title,
+            ColoredConsole.Write(menuItem.Title,
                 isCurrent ? SelectedBackgroundColor : BackgroundColor,
                 isCurrent ? SelectedForegroundColor : ForegroundColor);
 
@@ -414,21 +409,17 @@ namespace CLIRedraw
             }
             else
             {
-                Console.WriteLine();
+                ColoredConsole.InvisibleWrite("-");
             }
         }
 
-        private bool CheckBufferWidthChanged()
+        private void CheckBufferWidthChanged()
         {
-            var changed = Console.BufferWidth != _currentBufferWidth;
-
-            if (changed)
+            if (Console.BufferWidth != _currentBufferWidth)
             {
                 _currentBufferWidth = Console.BufferWidth;
                 _titleLinesCount = GetLinesCount(Title);
             }
-
-            return changed;
         }
 
         private int GetLinesCount(string value)
@@ -440,15 +431,27 @@ namespace CLIRedraw
 
             var lines = value.Split(new[] { "\n" }, StringSplitOptions.None);
 
-            return (int)lines.Sum(l => 
+            var linesCount = (int)lines.Sum(l => 
             {
+                if (l.Length < Console.BufferWidth)
+                {
+                    return 1;
+                }
+
+                if (l.Length == Console.BufferWidth)
+                {
+                    return 2;
+                }
+
                 return Math.Ceiling((double)l.Length / Console.BufferWidth);
             });
+
+            return linesCount;
         }
 
         private int GetLinesCountToMenuItem(int menuItemIndex)
         {
-            var linesCount = _titleLinesCount;
+            var linesCount = _titleLinesCount + 1;
 
             for (int i = 0; i < menuItemIndex; i++)
             {
