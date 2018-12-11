@@ -16,6 +16,7 @@ namespace SimpleMenu
             var calcSumMenuItem = menu.Add("Calc sum", Sum);
             calcSumMenuItem.Description = "Calculates sum of numbers";
 
+            var treeMenuItem = menu.Add("Print directory tree", PrintTree);
             var exitMenuItem = menu.Add("Exit", context => context.Menu.Close());
 
             menu.Show();
@@ -41,6 +42,28 @@ namespace SimpleMenu
             }
 
             Console.WriteLine($"Sum is {a + b}");
+            Console.ReadKey();
+        }
+
+        private static void PrintTree()
+        {
+            var pathInput = new Input
+            {
+                InputForegroundColor = ConsoleColor.Green,
+                ClearAfterInput = false
+            };
+
+            var path = pathInput.Show("Enter directory path");
+
+            var tree = new DirectoryTree
+            {
+                DirectoryNodeForegroundColor = ConsoleColor.Yellow,
+                FileNodeForegroundColor = ConsoleColor.White,
+                LinesForegroundColor = ConsoleColor.DarkGray
+            };
+
+            tree.Show(path);
+
             Console.ReadKey();
         }
     }
