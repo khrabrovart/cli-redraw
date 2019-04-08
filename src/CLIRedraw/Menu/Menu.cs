@@ -6,6 +6,8 @@ namespace CLIRedraw
 {
     public class Menu
     {
+        private static readonly Stack<Menu> _callStack = new Stack<Menu>();
+
         private List<MenuItem> _items;
         private MenuActionContext _invocationContext;
         private int _currentIndex;
@@ -39,7 +41,7 @@ namespace CLIRedraw
         }
 
         /// <summary>
-        /// Represents menu control with titile and menu items.
+        /// Represents menu control with title and menu items.
         /// </summary>
         /// <param name="title">Menu title.</param>
         /// <param name="menuItems">Menu items collection.</param>
@@ -104,7 +106,7 @@ namespace CLIRedraw
 
         private bool IsEmpty => _items.Count == 0;
 
-        private bool ShouldBeClosed => IsEmpty || _isClosed;
+        private bool ShouldBeClosed => _isClosed || IsEmpty;
 
         private bool IsInvoking => _invocationContext != null;
 
@@ -119,6 +121,7 @@ namespace CLIRedraw
             }
 
             Redraw();
+            _callStack.Push(this);
 
             while (!ShouldBeClosed)
             {
@@ -148,11 +151,19 @@ namespace CLIRedraw
         }
 
         /// <summary>
-        /// Closes the menu.
+        /// Closes the menu and all its descendants.
         /// </summary>
         public void Close()
         {
-            _isClosed = true;
+            var menu = _callStack.Pop();
+            menu._isClosed = true;
+
+            if (menu == this)
+            {
+                return;
+            }
+
+            Close();
         }
 
         /// <summary>
@@ -451,7 +462,7 @@ namespace CLIRedraw
 
         private int GetLinesCountToMenuItem(int menuItemIndex)
         {
-            var linesCount = _titleLinesCount + 1;
+            var linesCount = _titleLinesCount > 0 ? _titleLinesCount + 1 : 0;
 
             for (int i = 0; i < menuItemIndex; i++)
             {

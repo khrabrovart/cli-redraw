@@ -11,16 +11,11 @@ namespace SimplePrompt
             menu.Show();
         }
 
-        private static void ExitPrompt(MenuActionContext parentContext)
+        private static void ExitPrompt(MenuActionContext baseMenuContext)
         {
-            var prompt = new Menu();
+            var prompt = new Menu("Are you sure?");
 
-            var yesMenuItem = prompt.Add("Yes", context => 
-            {
-                context.Menu.Close();
-                parentContext.Menu.Close();
-            });
-
+            var yesMenuItem = prompt.Add("Yes", context => baseMenuContext.Menu.Close());
             var noMenuItem = prompt.Add("No", context => context.Menu.Close());
 
             prompt.Show();

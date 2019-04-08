@@ -34,11 +34,7 @@ namespace DynamicMenu
             };
 
             newMenuItem.AddOrUpdateAction(ConsoleKey.Enter, newMenuAction);
-
-            newMenuItem.AddOrUpdateAction(ConsoleKey.Delete, () =>
-            {
-                menu.Remove(newMenuItem);
-            });
+            newMenuItem.AddOrUpdateAction(ConsoleKey.Delete, () => menu.Remove(newMenuItem));
 
             menu.Add(newMenuItem);
         }
