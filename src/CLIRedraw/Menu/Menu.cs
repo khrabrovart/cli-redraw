@@ -6,113 +6,121 @@ namespace CLIRedraw
 {
     public class Menu
     {
-        private static readonly Stack<Menu> _callStack = new Stack<Menu>();
+        private readonly List<MenuItem> _items;
 
-        private List<MenuItem> _items;
-        private MenuActionContext _invocationContext;
-        private int _currentIndex;
-        private int _titleLinesCount;
-        private int _currentBufferWidth;
-        private bool _isClosed;
-        private bool _needRedraw;
+        private MenuAction _runningAction;
 
-        /// <summary>
-        /// Represents menu control.
-        /// </summary>
+        private int _selectedIndex;
+        private bool _closed;
+        private bool _showed;
+        private int _startingPosition;
+
+        private int? _redrawFromIndex;
+        private int _removedItemsCount;
+
+        private string _title;
+
         public Menu() : this(null, null)
         {
         }
 
-        /// <summary>
-        /// Represents menu control with title.
-        /// </summary>
-        /// <param name="title">Menu title.</param>
         public Menu(string title) : this(title, null)
         {
         }
 
-        /// <summary>
-        /// Represents menu control with menu items.
-        /// </summary>
-        /// <param name="menuItems">Menu items collection.</param>
-        public Menu(IEnumerable<MenuItem> menuItems) 
-            : this(null, menuItems)
+        public Menu(IEnumerable<MenuItem> menuItems) : this(null, menuItems) 
         {
         }
 
-        /// <summary>
-        /// Represents menu control with title and menu items.
-        /// </summary>
-        /// <param name="title">Menu title.</param>
-        /// <param name="menuItems">Menu items collection.</param>
         public Menu(string title, IEnumerable<MenuItem> menuItems)
         {
             _items = menuItems?.ToList() ?? new List<MenuItem>();
-            _currentBufferWidth = Console.BufferWidth;
 
-            if (title != null)
+            Title = title;
+            BackgroundColor = ColoredConsole.DefaultBackgroundColor;
+            ForegroundColor = ColoredConsole.DefaultForegroundColor;
+            SelectedBackgroundColor = ColoredConsole.DefaultForegroundColor;
+            SelectedForegroundColor = ColoredConsole.DefaultBackgroundColor;
+        }
+
+        public string Title 
+        { 
+            get
             {
-                Title = title;
-                _titleLinesCount = GetLinesCount(title);
+                return _title;
+            }
+
+            set
+            {
+                _title = value;
+                _startingPosition = value.Split(new[] { "\n" }, StringSplitOptions.None).Length;
             }
         }
 
-        /// <summary>
-        /// Gets currently selected menu item.
-        /// </summary>
-        public MenuItem CurrentItem => _items[_currentIndex];
+        public ConsoleColor BackgroundColor { get; set; }
 
-        /// <summary>
-        /// Gets the menu items.
-        /// </summary>
-        public IEnumerable<MenuItem> Items => _items;
+        public ConsoleColor ForegroundColor { get; set; }
 
-        /// <summary>
-        /// Gets or sets the menu title.
-        /// </summary>
-        public string Title { get; set; }
+        public ConsoleColor SelectedBackgroundColor { get; set; }
 
-        /// <summary>
-        /// Gets or sets the menu looped state.
-        /// </summary>
+        public ConsoleColor SelectedForegroundColor { get; set; }
+
+        public ConsoleColor TitleBackgroundColor { get; set; }
+
+        public ConsoleColor TitleForegroundColor { get; set; }
+
         public bool Looped { get; set; }
 
-        /// <summary>
-        /// Gets or sets background color for not selected menu items.
-        /// </summary>
-        public ConsoleColor BackgroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
-
-        /// <summary>
-        /// Gets or sets foreground color for not selected menu items.
-        /// </summary>
-        public ConsoleColor ForegroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
-
-        /// <summary>
-        /// Gets or sets background color for selected menu items.
-        /// </summary>
-        public ConsoleColor SelectedBackgroundColor { get; set; } = ColoredConsole.DefaultForegroundColor;
-
-        /// <summary>
-        /// Gets or sets foreground color for selected menu items.
-        /// </summary>
-        public ConsoleColor SelectedForegroundColor { get; set; } = ColoredConsole.DefaultBackgroundColor;
-
-        /// <summary>
-        /// Gets or sets the menu title color.
-        /// </summary>
-        public ConsoleColor TitleColor { get; set; } = ColoredConsole.DefaultForegroundColor;
+        public MenuItem SelectedItem => _items[_selectedIndex];
 
         private int LastIndex => _items.Count - 1;
 
-        private bool IsEmpty => _items.Count == 0;
+        private bool ShouldBeClosed => _closed || !_items.Any();
 
-        private bool ShouldBeClosed => _isClosed || IsEmpty;
+        private bool IsInvoking => _runningAction != null;
 
-        private bool IsInvoking => _invocationContext != null;
+        public void AddItem(MenuItem menuItem)
+        {
+            AddMenuItem(menuItem);
+        }
 
-        /// <summary>
-        /// Shows the menu. Does nothing if the menu has no items.
-        /// </summary>
+        public MenuItem AddItem(string title, MenuAction action)
+        {
+            return AddMenuItem(new MenuItem(title, action));
+        }
+
+        public void RemoveItem(MenuItem menuItem)
+        {
+            var menuItemIndex = _items.IndexOf(menuItem);
+
+            if (menuItemIndex == -1)
+            {
+                return;
+            }
+
+            if (SelectedItem == menuItem && _selectedIndex == LastIndex || menuItemIndex < _selectedIndex)
+            {
+                _selectedIndex--;
+            }
+
+            _items.Remove(menuItem);
+
+            if (!_items.Any())
+            {
+                return;
+            }
+
+            if (_showed && !IsInvoking)
+            {
+                DrawMenu();
+            }
+            else if (IsInvoking && menuItemIndex >= 0)
+            {
+                _redrawFromIndex = menuItemIndex;
+                _removedItemsCount++;
+            }
+        }
+
         public void Show()
         {
             if (ShouldBeClosed)
@@ -120,8 +128,9 @@ namespace CLIRedraw
                 return;
             }
 
-            Redraw();
-            _callStack.Push(this);
+            DrawMenu();
+
+            _showed = true;
 
             while (!ShouldBeClosed)
             {
@@ -138,9 +147,7 @@ namespace CLIRedraw
                         break;
 
                     default:
-                        var action = GetAction(keyInfo.Key);
-
-                        if (action != null)
+                        if (SelectedItem.Actions.TryGetValue(keyInfo.Key, out var action))
                         {
                             InvokeAction(action);
                         }
@@ -150,163 +157,72 @@ namespace CLIRedraw
             }
         }
 
-        /// <summary>
-        /// Closes the menu and all its descendants.
-        /// </summary>
         public void Close()
         {
-            var menu = _callStack.Pop();
-            menu._isClosed = true;
+            _closed = true;
+        }
 
-            if (menu == this)
+        private void DrawMenu(int? fromIndex = null)
+        {
+            Console.CursorVisible = false; // проверить, где лучше это расположить
+
+            if (!string.IsNullOrWhiteSpace(_title) && fromIndex == null)
+            {
+                ColoredConsole.WriteLine(_title, TitleBackgroundColor, TitleForegroundColor);
+            }
+
+            for (int i = fromIndex ?? 0; i < _items.Count; i++)
+            {
+                DrawItem(i);
+            }
+
+            if (_removedItemsCount > 0)
+            {
+                for (int i = 0; i < _removedItemsCount; i++)
+                {
+                    DrawEmpty(_items.Count + i);
+                }
+
+                _removedItemsCount = 0;
+            }
+
+            Console.SetCursorPosition(0, _startingPosition + Math.Max(_selectedIndex - 1, 0));
+            _redrawFromIndex = null;
+        }
+
+        private void DrawItem(int index)
+        {
+            var menuItem = _items[index];
+
+            if (menuItem == null)
             {
                 return;
             }
 
-            Close();
+            Console.SetCursorPosition(0, _startingPosition + index);
+
+            var title = menuItem.Title.PadRight(Console.BufferWidth, ' ');
+            var selected = _selectedIndex == index;
+
+            ColoredConsole.Write(
+                title, 
+                selected ? SelectedBackgroundColor : BackgroundColor, 
+                selected ? SelectedForegroundColor : ForegroundColor);
         }
 
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="menuItem">Menu item.</param>
-        public void Add(MenuItem menuItem)
+        private void DrawEmpty(int index)
         {
-            AddMenuItem(menuItem);
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title)
-        {
-            return AddMenuItem(new MenuItem(title));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title, Action action)
-        {
-            return AddMenuItem(new MenuItem(title, new MenuAction(action)));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title, Action<MenuActionContext> action)
-        {
-            return AddMenuItem(new MenuItem(title, action));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title, IDictionary<ConsoleKey, Action> actions)
-        {
-            return AddMenuItem(new MenuItem(title, actions));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
-        {
-            return AddMenuItem(new MenuItem(title, actions));
-        }
-
-        /// <summary>
-        /// Adds new menu item to the menu.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        /// <returns>Created menu item.</returns>
-        public MenuItem Add(string title, MenuAction action)
-        {
-            return AddMenuItem(new MenuItem(title, action));
-        }
-
-        /// <summary>
-        /// Removes menu item from the menu.
-        /// </summary>
-        /// <param name="menuItem">Menu item to remove.</param>
-        public void Remove(MenuItem menuItem)
-        {
-            if (CurrentItem == menuItem && _currentIndex == LastIndex)
-            {
-                _currentIndex--;
-            }
-
-            _items.Remove(menuItem);
-
-            if (IsEmpty)
-            {
-                return;
-            }
-
-            if (!IsInvoking)
-            {
-                Redraw();
-            }
-            else
-            {
-                _needRedraw = true;
-            }
-        }
-
-        /// <summary>
-        /// Removes menu item from the menu.
-        /// </summary>
-        /// <param name="index">Index of the menu item to remove.</param>
-        public void Remove(int index)
-        {
-            if (_currentIndex == index && _currentIndex == LastIndex)
-            {
-                _currentIndex--;
-            }
-
-            _items.RemoveAt(index);
-
-            if (IsEmpty)
-            {
-                return;
-            }
-
-            if (!IsInvoking)
-            {
-                Redraw();
-            }
-            else
-            {
-                _needRedraw = true;
-            }
+            Console.SetCursorPosition(0, _startingPosition + index);
+            Console.Write(new string(' ', Console.BufferWidth));
         }
 
         private MenuItem AddMenuItem(MenuItem menuItem)
         {
             _items.Add(menuItem);
 
-            if (!IsInvoking || !_invocationContext.MenuAction.ClearBeforeAction)
+            if (_showed && !IsInvoking)
             {
                 DrawItem(LastIndex);
-            }
-            else
-            {
-                _needRedraw = true;
             }
 
             return menuItem;
@@ -314,37 +230,28 @@ namespace CLIRedraw
 
         private void Up()
         {
-            if (_currentIndex == 0 && !Looped)
+            if (_selectedIndex == 0 && !Looped)
             {
                 return;
             }
 
-            CheckBufferWidthChanged();
-
-            var previousIndex = _currentIndex;
-            _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : LastIndex;
+            var previousIndex = _selectedIndex;
+            _selectedIndex = _selectedIndex > 0 ? _selectedIndex - 1 : LastIndex;
             DrawItem(previousIndex);
-            DrawItem(_currentIndex);
+            DrawItem(_selectedIndex);
         }
 
         private void Down()
         {
-            if (_currentIndex == LastIndex && !Looped)
+            if (_selectedIndex == LastIndex && !Looped)
             {
                 return;
             }
 
-            CheckBufferWidthChanged();
-
-            var previousIndex = _currentIndex;
-            _currentIndex = _currentIndex < LastIndex ? _currentIndex + 1 : 0;
-            DrawItem(previousIndex);
-            DrawItem(_currentIndex);
-        }
-
-        private MenuAction GetAction(ConsoleKey key)
-        {
-            return CurrentItem.Actions.TryGetValue(key, out var action) ? action : null;
+            var previousSelectedIndex = _selectedIndex;
+            _selectedIndex = _selectedIndex < LastIndex ? _selectedIndex + 1 : 0;
+            DrawItem(previousSelectedIndex);
+            DrawItem(_selectedIndex);
         }
 
         private void InvokeAction(MenuAction menuAction)
@@ -359,117 +266,30 @@ namespace CLIRedraw
                 Console.Clear();
             }
 
-            if (menuAction.IsCursorVisible)
+            if (menuAction.ShowCursor)
             {
-                Console.CursorVisible = true;
+                Console.CursorVisible = true; // где мы его обратно скрываем?
             }
 
-            InvokeInContext(menuAction);
+            _runningAction = menuAction;
 
-            if ((menuAction.ClearBeforeAction || _needRedraw) && !ShouldBeClosed)
+            menuAction.Action.Invoke();
+
+            _runningAction = null;
+
+            if (!ShouldBeClosed)
             {
-                Redraw();
-            }
-        }
-
-        private void InvokeInContext(MenuAction menuAction)
-        {
-            _invocationContext = new MenuActionContext(this, CurrentItem, menuAction);
-
-            menuAction?.Action?.Invoke(_invocationContext);
-
-            _invocationContext = null;
-        }
-
-        private void Redraw()
-        {
-            Console.Clear();
-
-            if (!string.IsNullOrWhiteSpace(Title))
-            {
-                ColoredConsole.WriteLine(Title, foregroundColor: TitleColor);
-                Console.WriteLine();
-            }
-
-            for (int i = 0; i < _items.Count; i++)
-            {
-                DrawItem(i);
-            }
-        }
-
-        private void DrawItem(int index)
-        {
-            var isCurrent = _currentIndex == index;
-            var menuItem = _items[index];
-
-            if (menuItem == null)
-            {
-                return;
-            }
-
-            Console.SetCursorPosition(0, GetLinesCountToMenuItem(index));
-            Console.CursorVisible = false;
-
-            ColoredConsole.Write(menuItem.Title,
-                isCurrent ? SelectedBackgroundColor : BackgroundColor,
-                isCurrent ? SelectedForegroundColor : ForegroundColor);
-
-            if (!string.IsNullOrWhiteSpace(menuItem.Description))
-            {
-                Console.WriteLine($" ({menuItem.Description})");
-            }
-            else
-            {
-                ColoredConsole.InvisibleWrite("-");
-            }
-        }
-
-        private void CheckBufferWidthChanged()
-        {
-            if (Console.BufferWidth != _currentBufferWidth)
-            {
-                _currentBufferWidth = Console.BufferWidth;
-                _titleLinesCount = GetLinesCount(Title);
-            }
-        }
-
-        private int GetLinesCount(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return 0;
-            }
-
-            var lines = value.Split(new[] { "\n" }, StringSplitOptions.None);
-
-            var linesCount = (int)lines.Sum(l => 
-            {
-                if (l.Length < Console.BufferWidth)
+                if (menuAction.ClearBeforeAction)
                 {
-                    return 1;
+                    Console.Clear();
+                    DrawMenu();
                 }
 
-                if (l.Length == Console.BufferWidth)
+                if (_redrawFromIndex != null)
                 {
-                    return 2;
+                    DrawMenu(_redrawFromIndex);
                 }
-
-                return Math.Ceiling((double)l.Length / Console.BufferWidth);
-            });
-
-            return linesCount;
-        }
-
-        private int GetLinesCountToMenuItem(int menuItemIndex)
-        {
-            var linesCount = _titleLinesCount > 0 ? _titleLinesCount + 1 : 0;
-
-            for (int i = 0; i < menuItemIndex; i++)
-            {
-                linesCount += GetLinesCount(_items[i].ToString());
             }
-
-            return linesCount;
         }
     }
 }

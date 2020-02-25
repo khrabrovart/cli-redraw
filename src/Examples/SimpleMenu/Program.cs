@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using CLIRedraw;
 
 namespace SimpleMenu
@@ -7,64 +9,76 @@ namespace SimpleMenu
     {
         static void Main(string[] args)
         {
-            var menu = new Menu("Simple Menu Title");
+            var menu = new Menu()
+            {
+                Title = "The menu!\nAnother line",
+                TitleBackgroundColor = ConsoleColor.Black,
+                TitleForegroundColor = ConsoleColor.Green,
+                Looped = true
+            };
 
-            var sayHelloMenuItem = menu.Add("Say Hello!", SayHello);
-            sayHelloMenuItem.DefaultAction.IsCursorVisible = false;
-            sayHelloMenuItem.Description = "Print Hello string";
+            menu.AddItem("Ask for hello", new ExplicitMenuAction(AskHello));
 
-            var calcSumMenuItem = menu.Add("Calc sum", Sum);
-            calcSumMenuItem.Description = "Calculates sum of numbers";
+            var items = new List<MenuItem>();
 
-            var treeMenuItem = menu.Add("Print directory tree", PrintTree);
-            var exitMenuItem = menu.Add("Exit", context => context.Menu.Close());
+            for (int i = 0; i < 200; i++)
+            {
+                items.Add(menu.AddItem("Test menu action we need to remove it", new ImplicitMenuAction(ImplicitAction)));
+            }
+
+            var bad = menu.AddItem("Say hello", new ExplicitMenuAction(() => SayHello("Default")));
+
+            menu.AddItem("Remove item", new ImplicitMenuAction(() =>
+            {
+                menu.RemoveItem(bad);
+            }));
+
+            menu.AddItem("Remove all f* items", new ImplicitMenuAction(() =>
+            {
+                foreach (var item in items)
+                {
+                    menu.RemoveItem(item);
+                }
+            }));
+
+            menu.AddItem("Exit", new ExplicitMenuAction(() => ExitPrompt(menu)));
 
             menu.Show();
         }
 
-        private static void SayHello()
+        private static void SayHello(string name)
         {
-            Console.WriteLine("Hello, World!");
+            Console.CursorVisible = false;
+            Console.WriteLine($"Hello, {name}!");
             Console.ReadKey();
         }
 
-        private static void Sum()
+        private static void AskHello()
         {
-            var myInput = new Input();
+            Console.Write("Say hello to: ");
+            var name = Console.ReadLine();
 
-            int a;
-            int b;
-
-            while (!int.TryParse(myInput.Show("Enter first number"), out a) || !int.TryParse(myInput.Show("Enter second number"), out b))
-            {
-                ColoredConsole.WriteLine("Invalid input!", foregroundColor: ConsoleColor.Red);
-                Console.ReadKey();
-            }
-
-            Console.WriteLine($"Sum is {a + b}");
-            Console.ReadKey();
+            SayHello(name);
         }
 
-        private static void PrintTree()
+        private static void ImplicitAction()
         {
-            var pathInput = new Input
+            Thread.Sleep(5000);
+        }
+
+        private static void ExitPrompt(Menu menu)
+        {
+            var prompt = new Menu();
+
+            prompt.AddItem(new MenuItem("Yes", new ImplicitMenuAction(() => 
             {
-                InputForegroundColor = ConsoleColor.Green,
-                ClearAfterInput = false
-            };
+                menu.Close();
+                prompt.Close();
+            })));
 
-            var path = pathInput.Show("Enter directory path");
+            prompt.AddItem(new MenuItem("No", new ImplicitMenuAction(() => prompt.Close())));
 
-            var tree = new DirectoryTree
-            {
-                DirectoryNodeForegroundColor = ConsoleColor.Yellow,
-                FileNodeForegroundColor = ConsoleColor.White,
-                LinesForegroundColor = ConsoleColor.DarkGray
-            };
-
-            tree.Show(path);
-
-            Console.ReadKey();
+            prompt.Show();
         }
     }
 }

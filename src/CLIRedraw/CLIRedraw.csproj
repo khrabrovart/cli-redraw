@@ -1,39 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyName>CLIRedraw</AssemblyName>
-    <PackageId>CLIRedraw</PackageId>
-    <Title>CLIRedraw</Title>
-    <Description>Advanced console controls</Description>
-    <Authors>Arthur Khrabrov</Authors>
-    <Owners>Arthur Khrabrov</Owners>
-    <PackageProjectUrl>https://github.com/khrabrovart/cli-redraw</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/khrabrovart/cli-redraw</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/khrabrovart/cli-redraw/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/khrabrovart/cli-redraw/master/src/nuget-icon.png</PackageIconUrl>
-    <Copyright>Copyright 2018 (C) Arthur Khrabrov. All rights reserved.</Copyright>
-    <PackageTags>console redraw controls cli cli-redraw menu</PackageTags>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>bin\Release\CLIRedraw.xml</DocumentationFile>
+	</PropertyGroup>
 
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>		
+		<PackageId>CLIRedraw</PackageId>
+		<PackageTags>console cli menu</PackageTags>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<IncludeSource>True</IncludeSource>
+		<IncludeSymbols>True</IncludeSymbols>
+		
+		<Title>CLIRedraw</Title>
+		<Description>Powerful CLI menu component</Description>
+
+		<Authors>Arthur Khrabrov</Authors>
+		<Owners>Arthur Khrabrov</Owners>
+		<Copyright>Copyright 2020 (C) Arthur Khrabrov. All rights reserved.</Copyright>
+
+		<RepositoryUrl>https://github.com/khrabrovart/cli-redraw</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		
+		<PackageProjectUrl>https://github.com/khrabrovart/cli-redraw</PackageProjectUrl>
+		<PackageLicenseUrl>https://github.com/khrabrovart/cli-redraw/blob/master/LICENSE</PackageLicenseUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/khrabrovart/cli-redraw/master/src/nuget-icon.png</PackageIconUrl>
     
     <!-- Consider only including a major version in the AssemblyVersion. -->
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
-    <PackageVersion>2.0.0-beta6</PackageVersion>
+		<AssemblyVersion>2.0.0</AssemblyVersion>
+		
+		<PackageVersion>2.0.0</PackageVersion>
+    <FileVersion>2.0.0</FileVersion>
+		<Version>2.0.0</Version>
+		
     <LangVersion>7.3</LangVersion>
-
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>.\bin\Release\CLIRedraw.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
-  </ItemGroup>
-
+	
 </Project>

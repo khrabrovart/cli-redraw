@@ -12,19 +12,10 @@ namespace CLIRedraw
         /// Represents menu item.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        public MenuItem(string title) : this(title, description: null)
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
         /// <param name="description">Menu item description.</param>
-        public MenuItem(string title, string description)
+        public MenuItem(string title)
         {
             Title = title;
-            Description = description;
 
             _actions = new Dictionary<ConsoleKey, MenuAction>();
         }
@@ -33,64 +24,11 @@ namespace CLIRedraw
         /// Represents menu item.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, Action action)
-            : this(title, new MenuAction(action))
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, Action<MenuActionContext> action)
-            : this(title, new MenuAction(action))
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
+        /// <param name="description">Menu item description.</param>
         /// <param name="action">Menu item default action.</param>
         public MenuItem(string title, MenuAction action)
-            : this(title, null, action)
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, string description, Action action)
-            : this(title, description, new MenuAction(action))
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, string description, Action<MenuActionContext> action)
-            : this(title, description, new MenuAction(action))
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="action">Menu item default action.</param>
-        public MenuItem(string title, string description, MenuAction action)
         {
             Title = title;
-            Description = description;
 
             _actions = new Dictionary<ConsoleKey, MenuAction>();
 
@@ -104,76 +42,11 @@ namespace CLIRedraw
         /// Represents menu item.
         /// </summary>
         /// <param name="title">Menu item title.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, IDictionary<ConsoleKey, Action> actions)
-            : this(title, null, actions)
-        { 
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
-            : this(title, null, actions)
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
+        /// <param name="description">Menu item description.</param>
         /// <param name="actions">Menu item actions map.</param>
         public MenuItem(string title, IDictionary<ConsoleKey, MenuAction> actions)
-            : this(title, null, actions)
-        {
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action> actions)
         {
             Title = title;
-            Description = description;
-
-            _actions = actions?
-                .Where(a => a.Value != null)
-                .ToDictionary(a => a.Key, a => new MenuAction(a.Value))
-                ?? new Dictionary<ConsoleKey, MenuAction>();
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, string description, IDictionary<ConsoleKey, Action<MenuActionContext>> actions)
-        {
-            Title = title;
-            Description = description;
-
-            _actions = actions?
-                .Where(a => a.Value != null)
-                .ToDictionary(a => a.Key, a => new MenuAction(a.Value))
-                ?? new Dictionary<ConsoleKey, MenuAction>();
-        }
-
-        /// <summary>
-        /// Represents menu item.
-        /// </summary>
-        /// <param name="title">Menu item title.</param>
-        /// <param name="description">Menu item description.</param>
-        /// <param name="actions">Menu item actions map.</param>
-        public MenuItem(string title, string description, IDictionary<ConsoleKey, MenuAction> actions)
-        {
-            Title = title;
-            Description = description;
 
             _actions = actions?
                 .Where(a => a.Value != null)
@@ -187,17 +60,12 @@ namespace CLIRedraw
         public string Title { get; set; }
 
         /// <summary>
-        /// Gets the menu item description.
-        /// </summary>
-        public string Description { get; set; }
-
-        /// <summary>
         /// Gets the menu item actions.
         /// </summary>
         public IReadOnlyDictionary<ConsoleKey, MenuAction> Actions => (IReadOnlyDictionary<ConsoleKey, MenuAction>)_actions;
 
         /// <summary>
-        /// Gets default menu item action (Enter key).
+        /// Gets the default menu item action (Enter key).
         /// </summary>
         public MenuAction DefaultAction => _actions.TryGetValue(ConsoleKey.Enter, out var action) ? action : null;
 
@@ -221,31 +89,6 @@ namespace CLIRedraw
             {
                 _actions.Add(key, action);
             }
-        }
-
-        /// <summary>
-        /// Adds or updates the menu item action by its key.
-        /// </summary>
-        /// <param name="key">Action key.</param>
-        /// <param name="action">Menu item action.</param>
-        public void AddOrUpdateAction(ConsoleKey key, Action<MenuActionContext> action)
-        {
-            AddOrUpdateAction(key, new MenuAction(action));
-        }
-
-        /// <summary>
-        /// Adds or updates the menu item action by its key.
-        /// </summary>
-        /// <param name="key">Action key.</param>
-        /// <param name="action">Menu item action.</param>
-        public void AddOrUpdateAction(ConsoleKey key, Action action)
-        {
-            AddOrUpdateAction(key, new MenuAction(action));
-        }
-
-        public override string ToString()
-        {
-            return Title + (string.IsNullOrWhiteSpace(Description) ? null : $" ({Description})");
         }
     }
 }
